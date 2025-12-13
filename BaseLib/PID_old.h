@@ -85,6 +85,8 @@ void PID_Control2(float current, float expected, PID2 *data);
  */
 float PID_Increment2(float current, float expect, PID_ADD2 *parameter);
 
+void PID_Control_d(float current, float expected, PID2 *parameter);
+
 #ifdef __cplusplus
 }
 #endif

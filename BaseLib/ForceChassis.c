@@ -49,12 +49,10 @@ void ChassisCalculateProcess(void *param)
         }
 
         //如果底盘硬件通过了安全检查，那么执行后面的数学解算
-
         // 逆解部分:
-
         // TODO:底盘期望速度->轮子期望速度
         arm_mat_mult_f32(&chassis->vel_A_mat, &robot_vel_mat, &wheel_vel_mat);
-
+        
         // TODO:底盘期望加速度->底盘广义力
         //arm_mat_mult_f32(&chassis->Mq_mat, &robot_acc_mat, &robot_force_mat); // 根据acc计算力矩前馈值
 

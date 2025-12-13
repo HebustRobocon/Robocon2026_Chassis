@@ -20,8 +20,7 @@
 
 typedef struct
 {
-  ODrive DriveMotor;           // 5055电机
-  // VESC_t DriveMotor;           //8311电机
+  VESC_t DriveMotor;           //8311电机
   M2006_TypeDef SteeringMotor; // M2006电机
   PID2 Steering_Dir_PID; // 转向电机PID角度环控制器
   PID2 Steering_Vel_PID; // 转向电机PID速度环控制器

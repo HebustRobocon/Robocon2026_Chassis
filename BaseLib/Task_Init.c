@@ -37,26 +37,25 @@ void Task_Init(void)
 
     wheelArray[0].pos.x =  0.32f;
     wheelArray[0].pos.y =  0.32f; 
-    wheelArray[0].pos.z =  PI/2.0f;
+    wheelArray[0].pos.z =  PI/4.0f;
     wheelArray[1].pos.x =  0.32f;
     wheelArray[1].pos.y = -0.32f;
-    wheelArray[0].pos.z =  PI/2.0f;
+    wheelArray[1].pos.z =  PI/4.0f;
     wheelArray[2].pos.x = -0.32f;
     wheelArray[2].pos.y = -0.32f;
-    wheelArray[0].pos.z =  PI/2.0f;
+    wheelArray[2].pos.z =  PI/4.0f;
     wheelArray[3].pos.x = -0.32f;
     wheelArray[3].pos.y =  0.32f;
-    wheelArray[0].pos.z =  PI/2.0f;
+    wheelArray[3].pos.z =  PI/4.0f;
+
     for(int i = 0; i < 4; i++)
     {
-        wheelArray[i].pos.z = 0.0f;
         wheelArray[i].user_data = &steeringWheelArray[i];
         wheelArray[i].set_target_cb = SetWheelTarget_Callback;
         wheelArray[i].reset_cb = WheelReset_Callback;
         wheelArray[i].state_cb = WheelState_Callback;
         wheelArray[i].get_vel_cb = GetWheelVelocity_Callback;
         chassis.wheel[i] = &wheelArray[i];
-        steeringWheelArray[i].DriveMotor.motorID = i + 1;
     }
 
 		CanFilter_Init(&hcan1);
@@ -101,10 +100,10 @@ void Wheel_Task(void *pvParameters)
     swheel->Steering_Dir_PID.limit = 10.0f;
     swheel->Steering_Dir_PID.output_limit = 10000.0f;
 
-    swheel->Driver_Vel_PID.Kp = 2.0f;
-    swheel->Driver_Vel_PID.Ki = 0.0f;
-    swheel->Driver_Vel_PID.Kd = 1.0f;
-    swheel->Driver_Vel_PID.limit = 10000.0f;
+    swheel->Driver_Vel_PID.Kp = 0.6f;
+    swheel->Driver_Vel_PID.Ki = 0.003f;
+    swheel->Driver_Vel_PID.Kd = 2.0f;
+    swheel->Driver_Vel_PID.limit = 6000.0f;
     swheel->Driver_Vel_PID.output_limit = 20.0f;
 
     swheel->offset = 0.0f;
@@ -119,8 +118,7 @@ void Wheel_Task(void *pvParameters)
         PID_Control2(swheel->currentDirection, swheel->putoutDirection, &swheel->Steering_Dir_PID);//角度环
         PID_Control2(swheel->SteeringMotor.Speed, swheel->Steering_Dir_PID.pid_out, &swheel->Steering_Vel_PID);//速度环
 				
-        PID_Control2(swheel->DriveMotor.posVelEstimateGet.velocity, swheel->putoutVelocity*VEL_TRANSFORM, &swheel->Driver_Vel_PID);
-//      PID_Control2(swheel->DriveMotor.rpm, swheel->putoutVelocity / wheel_radius * 9.549, &swheel->Driver_Vel_PID);
+        PID_Control_d(swheel->DriveMotor.rpm, swheel->putoutVelocity / wheel_radius / (2.0f * PI) * 60.0f, &swheel->Driver_Vel_PID);
         
         vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(5));
     }
@@ -133,14 +131,14 @@ void Can_Send(void *pvParameters)
 {
 		TickType_t last_wake_time = xTaskGetTickCount();
 		
-		// steeringWheelArray[0].DriveMotor.hcan = &hcan1;
-		// steeringWheelArray[0].DriveMotor.motor_id = 0x01;
-		// steeringWheelArray[1].DriveMotor.hcan = &hcan1;
-		// steeringWheelArray[1].DriveMotor.motor_id = 0x02;
-    // steeringWheelArray[2].DriveMotor.hcan = &hcan1;
-		// steeringWheelArray[2].DriveMotor.motor_id = 0x03;
-    // steeringWheelArray[3].DriveMotor.hcan = &hcan1;
-		// steeringWheelArray[3].DriveMotor.motor_id = 0x04;
+		steeringWheelArray[0].DriveMotor.hcan = &hcan1;
+		steeringWheelArray[0].DriveMotor.motor_id = 0x01;
+		steeringWheelArray[1].DriveMotor.hcan = &hcan1;
+		steeringWheelArray[1].DriveMotor.motor_id = 0x02;
+    steeringWheelArray[2].DriveMotor.hcan = &hcan1;
+		steeringWheelArray[2].DriveMotor.motor_id = 0x03;
+    steeringWheelArray[3].DriveMotor.hcan = &hcan1;
+		steeringWheelArray[3].DriveMotor.motor_id = 0x04;
 		for(;;)
 		{
 			motorCurrentBuf[0] = steeringWheelArray[0].Steering_Vel_PID.pid_out;
@@ -150,27 +148,15 @@ void Can_Send(void *pvParameters)
 			
 			MotorSend(&hcan2, 0x200, motorCurrentBuf);
 			
-			ODriveGetEncoderEstimate(&steeringWheelArray[0].DriveMotor);
-			ODriveSetTorque(&steeringWheelArray[0].DriveMotor, steeringWheelArray[0].Driver_Vel_PID.pid_out);
-      vTaskDelay(2);
-			ODriveGetEncoderEstimate(&steeringWheelArray[1].DriveMotor);
-			ODriveSetTorque(&steeringWheelArray[1].DriveMotor, steeringWheelArray[1].Driver_Vel_PID.pid_out);
-      vTaskDelay(2);
-			ODriveGetEncoderEstimate(&steeringWheelArray[2].DriveMotor);
-			ODriveSetTorque(&steeringWheelArray[2].DriveMotor, steeringWheelArray[2].Driver_Vel_PID.pid_out);
-			vTaskDelay(2);
-			ODriveGetEncoderEstimate(&steeringWheelArray[3].DriveMotor);
-			ODriveSetTorque(&steeringWheelArray[3].DriveMotor, steeringWheelArray[3].Driver_Vel_PID.pid_out);
+			driveCurrentBuf[0] = steeringWheelArray[0].Driver_Vel_PID.pid_out;
+			driveCurrentBuf[1] = steeringWheelArray[1].Driver_Vel_PID.pid_out;
+			driveCurrentBuf[2] = steeringWheelArray[2].Driver_Vel_PID.pid_out;
+			driveCurrentBuf[3] = steeringWheelArray[3].Driver_Vel_PID.pid_out;
 			
-//			driveCurrentBuf[0] = steeringWheelArray[0].Driver_Vel_PID.pid_out;
-//			driveCurrentBuf[1] = steeringWheelArray[1].Driver_Vel_PID.pid_out;
-//			driveCurrentBuf[2] = steeringWheelArray[2].Driver_Vel_PID.pid_out;
-//			driveCurrentBuf[3] = steeringWheelArray[3].Driver_Vel_PID.pid_out;
-//			
-//			VESC_SetCurrent(&steeringWheelArray[0].DriveMotor, driveCurrentBuf[0]);
-//      VESC_SetCurrent(&steeringWheelArray[1].DriveMotor, driveCurrentBuf[1]);
-//      VESC_SetCurrent(&steeringWheelArray[2].DriveMotor, driveCurrentBuf[2]);
-//      VESC_SetCurrent(&steeringWheelArray[3].DriveMotor, driveCurrentBuf[3]);
+      VESC_SetCurrent(&steeringWheelArray[0].DriveMotor, driveCurrentBuf[0]);
+      VESC_SetCurrent(&steeringWheelArray[1].DriveMotor, driveCurrentBuf[1]);
+      VESC_SetCurrent(&steeringWheelArray[2].DriveMotor, driveCurrentBuf[2]);
+      VESC_SetCurrent(&steeringWheelArray[3].DriveMotor, driveCurrentBuf[3]);
 			
 			vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(5));
 		}
@@ -237,7 +223,7 @@ void Move_Task(void *pvParameters)
             chassis.exp_vel.z = exp_vel_world.z;
         }else if(chassis_mode == REMOTE)
         {
-            chassis.exp_vel.x = Remote_Control.Ex / 2047.0f * MAX_ROBOT_VEL; //遥控器控制，最大1.5m/s
+            chassis.exp_vel.x = Remote_Control.Ex / 2047.0f * MAX_ROBOT_VEL; //遥控器控制
             chassis.exp_vel.y = Remote_Control.Ey / 2047.0f * MAX_ROBOT_VEL;
             chassis.exp_vel.z = Remote_Control.Eomega / 2047.0f * MAX_ROBOT_OMEGA;//弧度/s
         }
@@ -255,14 +241,10 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     {
         uint8_t Recv[8] = {0};
         uint32_t ID = CAN_Receive_DataFrame(hcan, Recv);
-	      ODriveRecvServe(&steeringWheelArray[0].DriveMotor, ID, Recv);
-        ODriveRecvServe(&steeringWheelArray[1].DriveMotor, ID, Recv);
-        ODriveRecvServe(&steeringWheelArray[2].DriveMotor, ID, Recv);
-        ODriveRecvServe(&steeringWheelArray[3].DriveMotor, ID, Recv);
-        // VESC_ReceiveHandler(&steeringWheelArray[0].DriveMotor, &hcan1, ID,Recv);
-        // VESC_ReceiveHandler(&steeringWheelArray[1].DriveMotor, &hcan1, ID,Recv);
-        // VESC_ReceiveHandler(&steeringWheelArray[2].DriveMotor, &hcan1, ID,Recv);
-        // VESC_ReceiveHandler(&steeringWheelArray[3].DriveMotor, &hcan1, ID,Recv);
+        VESC_ReceiveHandler(&steeringWheelArray[0].DriveMotor, &hcan1, ID,Recv);
+        VESC_ReceiveHandler(&steeringWheelArray[1].DriveMotor, &hcan1, ID,Recv);
+        VESC_ReceiveHandler(&steeringWheelArray[2].DriveMotor, &hcan1, ID,Recv);
+        VESC_ReceiveHandler(&steeringWheelArray[3].DriveMotor, &hcan1, ID,Recv);
     }
 }
 
