@@ -16,8 +16,8 @@
         <TargetCommonOption>
           <Device>STM32F407VETx</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F4xx_DFP.2.15.0</PackID>
-          <PackURL>http://www.keil.com/pack/</PackURL>
+          <PackID>Keil.STM32F4xx_DFP.3.1.1</PackID>
+          <PackURL>https://www.keil.com/pack/</PackURL>
           <Cpu>IRAM(0x20000000-0x2001BFFF) IRAM2(0x2001C000-0x2001FFFF) IROM(0x8000000-0x807FFFF) CLOCK(25000000) FPU2 CPUTYPE("Cortex-M4")</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile></StartupFile>
@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F407xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../BaseLib;../Bsp;../Middlewares/ST/ARM/DSP/Inc;../Eigen;../Matrix;../MDK-ARM;../USB_DEVICE/App;../USB_DEVICE/Target;../Middlewares/ST/STM32_USB_Device_Library/Core/Inc;../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../BaseLib;../Bsp;../Middlewares/ST/ARM/DSP/Inc;../Eigen;../Matrix;../MDK-ARM;../USB_DEVICE/App;../USB_DEVICE/Target;../Middlewares/ST/STM32_USB_Device_Library/Core/Inc;../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc;..\Compents;..\Chassis</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -878,21 +878,6 @@
               <FilePath>..\BaseLib\STP-23L.h</FilePath>
             </File>
             <File>
-              <FileName>AutoPilot.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BaseLib\AutoPilot.c</FilePath>
-            </File>
-            <File>
-              <FileName>AutoPilot.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\BaseLib\AutoPilot.h</FilePath>
-            </File>
-            <File>
-              <FileName>ForceChassis.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BaseLib\ForceChassis.c</FilePath>
-            </File>
-            <File>
               <FileName>svd.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Matrix\svd.c</FilePath>
@@ -903,21 +888,6 @@
               <FilePath>..\Matrix\svd.h</FilePath>
             </File>
             <File>
-              <FileName>ForceChassis.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\BaseLib\ForceChassis.h</FilePath>
-            </File>
-            <File>
-              <FileName>drive_callback.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\drive_callback.c</FilePath>
-            </File>
-            <File>
-              <FileName>drive_callback.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\drive_callback.h</FilePath>
-            </File>
-            <File>
               <FileName>vesc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\BaseLib\vesc.c</FilePath>
@@ -926,26 +896,6 @@
               <FileName>vesc.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\BaseLib\vesc.h</FilePath>
-            </File>
-            <File>
-              <FileName>Task_Init.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BaseLib\Task_Init.c</FilePath>
-            </File>
-            <File>
-              <FileName>Task_Init.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\BaseLib\Task_Init.h</FilePath>
-            </File>
-            <File>
-              <FileName>Pilot_callback.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Pilot_callback.c</FilePath>
-            </File>
-            <File>
-              <FileName>Pilot_callback.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Pilot_callback.h</FilePath>
             </File>
             <File>
               <FileName>Vector.h</FileName>
@@ -961,16 +911,6 @@
               <FileName>JY61.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\BaseLib\JY61.h</FilePath>
-            </File>
-            <File>
-              <FileName>WatchDog.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BaseLib\WatchDog.c</FilePath>
-            </File>
-            <File>
-              <FileName>WatchDog.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\BaseLib\WatchDog.h</FilePath>
             </File>
             <File>
               <FileName>encoder.c</FileName>
@@ -2464,6 +2404,66 @@
                 </CommonProperty>
                 <FileArmAds/>
               </FileOption>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Components</GroupName>
+          <Files>
+            <File>
+              <FileName>drive_callback.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Compents\drive_callback.c</FilePath>
+            </File>
+            <File>
+              <FileName>drive_callback.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Compents\drive_callback.h</FilePath>
+            </File>
+            <File>
+              <FileName>Pilot_callback.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Compents\Pilot_callback.c</FilePath>
+            </File>
+            <File>
+              <FileName>Pilot_callback.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Compents\Pilot_callback.h</FilePath>
+            </File>
+            <File>
+              <FileName>Task_Init.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Compents\Task_Init.c</FilePath>
+            </File>
+            <File>
+              <FileName>Task_Init.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Compents\Task_Init.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Chassis</GroupName>
+          <Files>
+            <File>
+              <FileName>AutoPilot.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Chassis\AutoPilot.c</FilePath>
+            </File>
+            <File>
+              <FileName>AutoPilot.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Chassis\AutoPilot.h</FilePath>
+            </File>
+            <File>
+              <FileName>ForceChassis.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Chassis\ForceChassis.c</FilePath>
+            </File>
+            <File>
+              <FileName>ForceChassis.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Chassis\ForceChassis.h</FilePath>
             </File>
           </Files>
         </Group>

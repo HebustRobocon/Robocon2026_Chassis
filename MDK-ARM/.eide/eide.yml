@@ -25,6 +25,7 @@ virtualFolder:
                 - path: ../Core/Src/freertos.c
                 - path: ../Core/Src/can.c
                 - path: ../Core/Src/dma.c
+                - path: ../Core/Src/spi.c
                 - path: ../Core/Src/tim.c
                 - path: ../Core/Src/usart.c
                 - path: ../Core/Src/stm32f4xx_it.c
@@ -68,6 +69,7 @@ virtualFolder:
             - path: ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c
             - path: ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c
             - path: ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c
+            - path: ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c
             - path: ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c
           folders: []
         - name: CMSIS
@@ -130,26 +132,38 @@ virtualFolder:
         - path: ../BaseLib/PID_old.h
         - path: ../BaseLib/STP-23L.c
         - path: ../BaseLib/STP-23L.h
-        - path: ../BaseLib/AutoPilot.c
-        - path: ../BaseLib/AutoPilot.h
-        - path: ../BaseLib/ForceChassis.c
         - path: ../Matrix/svd.c
         - path: ../Matrix/svd.h
-        - path: ../BaseLib/ForceChassis.h
-        - path: drive_callback.c
-        - path: drive_callback.h
         - path: ../BaseLib/vesc.c
         - path: ../BaseLib/vesc.h
-        - path: ../BaseLib/Task_Init.c
-        - path: ../BaseLib/Task_Init.h
-        - path: Pilot_callback.c
-        - path: Pilot_callback.h
         - path: ../BaseLib/Vector.h
+        - path: ../BaseLib/JY61.c
+        - path: ../BaseLib/JY61.h
+        - path: ../BaseLib/encoder.c
+        - path: ../BaseLib/encoder.h
+        - path: ../BaseLib/AS5047.c
+        - path: ../BaseLib/AS5047.h
       folders: []
     - name: Matrix
       files:
         - path: ../Matrix/matrix.c
         - path: ../Matrix/matrix.h
+      folders: []
+    - name: Components
+      files:
+        - path: ../Compents/drive_callback.c
+        - path: ../Compents/drive_callback.h
+        - path: ../Compents/Pilot_callback.c
+        - path: ../Compents/Pilot_callback.h
+        - path: ../Compents/Task_Init.c
+        - path: ../Compents/Task_Init.h
+      folders: []
+    - name: Chassis
+      files:
+        - path: ../Chassis/AutoPilot.c
+        - path: ../Chassis/AutoPilot.h
+        - path: ../Chassis/ForceChassis.c
+        - path: ../Chassis/ForceChassis.h
       folders: []
     - name: ::CMSIS
       files: []
@@ -183,6 +197,8 @@ targets:
         - ../USB_DEVICE/Target
         - ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc
         - ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc
+        - ../Compents
+        - ../Chassis
         - .cmsis/include
         - RTE/_chassis
       libList: []

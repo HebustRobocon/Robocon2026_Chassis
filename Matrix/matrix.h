@@ -6,10 +6,10 @@
 #include <arm_math.h>
 
 
-#define M 8
-#define N 3
-
-int solve_linear_system_8x3(const float A_in[M][N], const float b_in[M][1], float x_out[N][1]);
+int solve_linear_system_qr_f32(
+    const arm_matrix_instance_f32 *A_in,
+    const arm_matrix_instance_f32 *b_in,
+    arm_matrix_instance_f32 *x_out);
 
 
 #endif

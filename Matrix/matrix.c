@@ -1,151 +1,163 @@
+#include "arm_math.h"
+#include <math.h>
+#include <string.h>
 #include "matrix.h"
 
-#include "matrix.h"
-#include <math.h>  // 确保有sqrt和fabs声明
+#define MAT(A, r, c) ((A)->pData[(r)*(A)->numCols + (c)])
 
-// 交换两个整数
-static void swap_int(int* a, int* b) {
-    int tmp = *a; *a = *b; *b = tmp;
+/* 交换两个 int */
+static inline void swap_int(int *a, int *b)
+{
+    int t = *a; *a = *b; *b = t;
 }
 
-// 交换矩阵A的两列
-static void swap_cols(float A[M][N], int col1, int col2) {
-    for (int i = 0; i < M; i++) {
-        float tmp = A[i][col1];
-        A[i][col1] = A[i][col2];
-        A[i][col2] = tmp;
+/* 交换矩阵的两列 */
+static void swap_cols_f32(arm_matrix_instance_f32 *A, int c1, int c2)
+{
+    uint32_t M = A->numRows;
+    for (uint32_t i = 0; i < M; i++) {
+        float tmp = MAT(A, i, c1);
+        MAT(A, i, c1) = MAT(A, i, c2);
+        MAT(A, i, c2) = tmp;
     }
 }
 
-// 计算列向量的2范数
-static float col_norm(const float A[M][N], int col, int start_row) {
-    float sum = 0.0;
-    for (int i = start_row; i < M; i++) {
-        sum += A[i][col] * A[i][col];
+/* 计算列范数（从 start_row 开始） */
+static float col_norm_f32(
+    const arm_matrix_instance_f32 *A,
+    int col,
+    int start_row)
+{
+    float sum = 0.0f;
+    for (uint32_t i = start_row; i < A->numRows; i++) {
+        float v = MAT(A, i, col);
+        sum += v * v;
     }
-    return sqrt(sum);
+    return sqrtf(sum);
 }
 
-// 计算Householder向量和beta
-static float compute_householder_vector(float v[], int len) {
-    float sigma = 0.0;
-    for (int i = 1; i < len; i++) sigma += v[i] * v[i];
+/* 计算 Householder 向量，返回 beta */
+static float compute_householder(float *v, int len)
+{
+    float sigma = 0.0f;
+    for (int i = 1; i < len; i++)
+        sigma += v[i] * v[i];
 
-    if (sigma == 0.0) {
-        return 0.0;
-    }
+    if (sigma == 0.0f)
+        return 0.0f;
 
-    float mu = sqrt(v[0]*v[0] + sigma);
+    float mu = sqrtf(v[0]*v[0] + sigma);
     if (v[0] <= 0)
-        v[0] = v[0] - mu;
+        v[0] -= mu;
     else
         v[0] = -sigma / (v[0] + mu);
 
-    float beta = 2.0 * v[0] * v[0] / (sigma + v[0]*v[0]);
+    float beta = 2.0f * v[0] * v[0] / (sigma + v[0]*v[0]);
 
-    for (int i = 1; i < len; i++) {
+    for (int i = 1; i < len; i++)
         v[i] /= v[0];
-    }
-    v[0] = 1.0;
 
+    v[0] = 1.0f;
     return beta;
 }
 
-int solve_linear_system_8x3(const float A_in[M][N], const float b_in[M][1], float x_out[N][1]) {
-    // 复制A和b，因为会修改
-    float A[M][N];
-    float b[M];
-    for (int i = 0; i < M; i++) {
-        b[i] = b_in[i][0];  // 修改这里，访问二维数组元素
-        for (int j = 0; j < N; j++) {
-            A[i][j] = A_in[i][j];
-        }
+/* ======================= 主函数 ======================= */
+
+int solve_linear_system_qr_f32(
+    const arm_matrix_instance_f32 *A_in,
+    const arm_matrix_instance_f32 *b_in,
+    arm_matrix_instance_f32 *x_out)
+{
+    uint32_t M = A_in->numRows;
+    uint32_t N = A_in->numCols;
+
+    if (b_in->numRows != M || b_in->numCols != 1 ||
+        x_out->numRows != N || x_out->numCols != 1)
+        return -1;
+
+    /* 工作区（可改成外部传入以避免栈占用） */
+    float A_buf[24];
+    float b_buf[8];
+    float v[8];
+    float col_norms[3];
+    int   col_perm[3];
+
+    arm_matrix_instance_f32 A;
+    arm_mat_init_f32(&A, M, N, A_buf);
+
+    memcpy(A_buf, A_in->pData, sizeof(float)*M*N);
+    for (uint32_t i = 0; i < M; i++)
+        b_buf[i] = b_in->pData[i];
+
+    for (uint32_t j = 0; j < N; j++) {
+        col_perm[j] = j;
+        col_norms[j] = col_norm_f32(&A, j, 0);
     }
 
-    int col_perm[N] = {0, 1, 2};
+    /* QR 分解（列主元） */
+    for (uint32_t k = 0; k < N; k++) {
 
-    float col_norms[N];
-    for (int j = 0; j < N; j++) {
-        col_norms[j] = col_norm(A, j, 0);
-    }
-
-    float v[M];
-
-    for (int k = 0; k < N; k++) {
-        int max_col = k;
+        uint32_t max_col = k;
         float max_norm = col_norms[k];
-        for (int j = k+1; j < N; j++) {
+        for (uint32_t j = k + 1; j < N; j++) {
             if (col_norms[j] > max_norm) {
                 max_norm = col_norms[j];
                 max_col = j;
             }
         }
+
         if (max_col != k) {
-            swap_cols(A, k, max_col);
+            swap_cols_f32(&A, k, max_col);
             swap_int(&col_perm[k], &col_perm[max_col]);
-            {
-                float tmp = col_norms[k];
-                col_norms[k] = col_norms[max_col];
-                col_norms[max_col] = tmp;
-            }
+            float t = col_norms[k];
+            col_norms[k] = col_norms[max_col];
+            col_norms[max_col] = t;
         }
 
         int len = M - k;
-        for (int i = 0; i < len; i++) {
-            v[i] = A[k + i][k];
-        }
+        for (int i = 0; i < len; i++)
+            v[i] = MAT(&A, k + i, k);
 
-        float beta = compute_householder_vector(v, len);
+        float beta = compute_householder(v, len);
 
-        if (beta != 0.0) {
-            for (int j = k; j < N; j++) {
-                float w = 0.0;
-                for (int i = 0; i < len; i++) {
-                    w += v[i] * A[k + i][j];
-                }
+        if (beta != 0.0f) {
+            for (uint32_t j = k; j < N; j++) {
+                float w = 0.0f;
+                for (int i = 0; i < len; i++)
+                    w += v[i] * MAT(&A, k + i, j);
+
                 w *= beta;
-
-                for (int i = 0; i < len; i++) {
-                    A[k + i][j] -= w * v[i];
-                }
+                for (int i = 0; i < len; i++)
+                    MAT(&A, k + i, j) -= w * v[i];
             }
 
-            float w_b = 0.0;
-            for (int i = 0; i < len; i++) {
-                w_b += v[i] * b[k + i];
-            }
-            w_b *= beta;
-            for (int i = 0; i < len; i++) {
-                b[k + i] -= w_b * v[i];
-            }
-        }
+            float wb = 0.0f;
+            for (int i = 0; i < len; i++)
+                wb += v[i] * b_buf[k + i];
 
-        for (int j = k + 1; j < N; j++) {
-            if (col_norms[j] != 0) {
-                float val = A[k][j] / col_norms[j];
-                float temp = 1.0 - val * val;
-                if (temp < 0) temp = 0;
-                col_norms[j] *= sqrtf(temp);
-            }
+            wb *= beta;
+            for (int i = 0; i < len; i++)
+                b_buf[k + i] -= wb * v[i];
         }
     }
 
-    float z[N] = {0};
+    /* 回代 */
+    float z[3];
     for (int i = N - 1; i >= 0; i--) {
-        float sum = 0.0;
-        for (int j = i + 1; j < N; j++) {
-            sum += A[i][j] * z[j];
-        }
-        if (fabsf(A[i][i]) < 1e-12) {
+        float sum = 0.0f;
+        for (uint32_t j = i + 1; j < N; j++)
+            sum += MAT(&A, i, j) * z[j];
+
+        float diag = MAT(&A, i, i);
+        if (fabsf(diag) < 1e-12f)
             return -1;
-        }
-        z[i] = (b[i] - sum) / A[i][i];
+
+        z[i] = (b_buf[i] - sum) / diag;
     }
 
-    // 恢复列顺序，这里修改为访问二维数组元素
-    for (int i = 0; i < N; i++) {
-        x_out[col_perm[i]][0] = z[i];
-    }
+    /* 恢复列顺序 */
+    for (uint32_t i = 0; i < N; i++)
+        x_out->pData[col_perm[i]] = z[i];
 
     return 0;
 }
