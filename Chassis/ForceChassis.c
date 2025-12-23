@@ -42,18 +42,7 @@ void ChassisCalculateProcess(void *param)
             else if(state==WHEEL_IDEL)  //如果是空闲模式，请求执行复位
                 chassis->wheel[i]->reset_cb(chassis->wheel[i]);
             else if(state==WHEEL_ERROR) //轮子出现错误，执行底盘回调通知应用层
-            {
                 chassis->wheel_err_cb(chassis,chassis->wheel[i]);
-            }
-        }
-
-        uint8_t expect_mask = (1 << wheel_num) - 1;
-        if (safe_check != expect_mask)
-        {
-            for(int i=0;i<wheel_num;i++)    //底盘异常，设置所有的输出均为0
-                chassis->wheel[i]->set_target_cb(chassis->wheel[i],0.0f,0.0f,0.0f);
-            vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(50));
-            continue;
         }
 
         //如果底盘硬件通过了安全检查，那么执行后面的数学解算
