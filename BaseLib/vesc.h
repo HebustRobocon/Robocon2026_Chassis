@@ -49,7 +49,7 @@ typedef struct
     CAN_HandleTypeDef *hcan;
     uint32_t motor_id;
 
-    int32_t rpm;
+    int32_t epm;
     float current;
     float duty_cycle;
 

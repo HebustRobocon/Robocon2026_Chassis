@@ -13,10 +13,9 @@
 #define PI 3.14159265358979f
 #define ANGLE2RAD(x) (x) * PI / 180.0f
 #define RAD2ANGLE(x) (x) * 180.0f / PI
-#define n 3.0f //减速比
-#define wheel_radius 0.05f //轮子半径，单位m
-#define KV 170.0f //电机KV值
-#define VEL_TRANSFORM (10.0f/(3.0f*3.14159265f*0.096f)) //将m/s速度转换为电机r/s
+#define wheel_radius 0.057f //轮子半径，单位m
+#define n 3.5f
+#define KV 170
 
 typedef struct
 {
@@ -48,15 +47,20 @@ typedef struct
 
 } SteeringWheel;
 
+/*回调函数*/
 void SetWheelTarget_Callback(Wheel_t *_this, float rad, float velocity, float force);
 void WheelError_Callback(Chassis_t *_this, Wheel_t *wheel);
 Vector2D GetWheelVelocity_Callback(Wheel_t *_this);
 WheelState WheelState_Callback(Wheel_t *_this);
 void WheelReset_Callback(Wheel_t *_this);
-void UpdateAngle(SteeringWheel *motor);
+
+
 void LimitAngle(float* angle);
 float AngleDiffer(float angle1,float angle2);
+
+void UpdateAngle(SteeringWheel *motor);
 void MinorArcDeal(SteeringWheel *motor);
+
 uint8_t SteeringWheelReady(SteeringWheel *StrWhe);
 void Reset_Function(SteeringWheel *pSteWhe);
 

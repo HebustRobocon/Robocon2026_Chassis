@@ -8,7 +8,7 @@ void SetWheelTarget_Callback(Wheel_t *_this, float rad, float velocity, float fo
     SteeringWheel *steeringwheel = (SteeringWheel *)_this->user_data;
     steeringwheel->expectDirection = RAD2ANGLE(rad);
     steeringwheel->expextVelocity = velocity;
-	steeringwheel->expextForce  = force * n * wheel_radius * (2.0f * PI * KV / 60.0f) * cosf(ANGLE2RAD(steeringwheel->putoutDirection - steeringwheel->currentDirection));
+		steeringwheel->expextForce  = force * n * wheel_radius * (2.0f * PI * KV / 60.0f) * cosf(ANGLE2RAD(steeringwheel->putoutDirection - steeringwheel->currentDirection));
 }
 
 void WheelReset_Callback(Wheel_t *_this)
@@ -21,13 +21,13 @@ WheelState WheelState_Callback(Wheel_t *_this)
 {
     SteeringWheel *pSteWhe = (SteeringWheel *)_this->user_data;
 
-	if(pSteWhe->ready_edge_flag >> 7)
-	{
-		MinorArcDeal(pSteWhe);
-		return WHEEL_HEALTH;
-	}else {
-		return WHEEL_IDEL;
-	}
+		if(pSteWhe->ready_edge_flag >> 7)
+		{
+			MinorArcDeal(pSteWhe);
+			return WHEEL_HEALTH;
+		}else {
+			return WHEEL_IDEL;
+		}
 }
 
 Vector2D GetWheelVelocity_Callback(Wheel_t *_this)
@@ -35,9 +35,9 @@ Vector2D GetWheelVelocity_Callback(Wheel_t *_this)
     SteeringWheel *pSteWhe = (SteeringWheel *)_this->user_data;
 
     Vector2D velocity;
-    velocity.x = pSteWhe->DriveMotor.rpm * 60.0f * 2.0f * 3.1415926f * n * wheel_radius * cosf(ANGLE2RAD(pSteWhe->currentDirection));
-	velocity.y = pSteWhe->DriveMotor.rpm * 60.0f * 2.0f * 3.1415926f * n * wheel_radius * sinf(ANGLE2RAD(pSteWhe->currentDirection));
-	return velocity;
+    velocity.x = (pSteWhe->DriveMotor.epm/20.0f) * 60.0f * 2.0f * 3.1415926f * n * wheel_radius * cosf(ANGLE2RAD(pSteWhe->currentDirection));
+		velocity.y = (pSteWhe->DriveMotor.epm/20.0f) * 2.0f * 3.1415926f * n * wheel_radius * sinf(ANGLE2RAD(pSteWhe->currentDirection));
+		return velocity;
 }
 
 void WheelError_Callback(Chassis_t *_this, Wheel_t *wheel)
@@ -68,12 +68,12 @@ void LimitAngle(float* angle)
 
 float AngleDiffer(float angle1,float angle2)
 {
-	float temp=angle1-angle2;
-	if(temp>180.0f)
-		return temp-360.0f;
-	else if(temp<-180.0f)
-		return temp+360.0f;
-	return temp;
+		float temp=angle1-angle2;
+		if(temp>180.0f)
+			return temp-360.0f;
+		else if(temp<-180.0f)
+			return temp+360.0f;
+		return temp;
 }
 
 // MinorArcDeal是一个智能的舵轮转向优化算法，它：
@@ -129,8 +129,8 @@ void MinorArcDeal(SteeringWheel *motor)
 }
 void UpdateAngle(SteeringWheel *motor)
 {
-	//float currentAngle = (motor->encoder.angle_deg);
-	float currentAngle = (float)(motor->SteeringMotor.Angle - motor->offset) * 10 / 4.0f / 8192.0f;	//2006减速比为36/1，这里的10其实是(360/36)
+	//float currentAngle = (motor->encoder.angle_deg);// + RAD2ANGLE(_wheel->pos.z)
+	float currentAngle = ((float)(motor->SteeringMotor.Angle - motor->offset) * 10 / n / 8192.0f);	//2006减速比为36/1，这里的10其实是(360/36)
 	float actualTargetAngle = (float)(180 * ((int8_t)(currentAngle / 180.0f))) + motor->expectDirection;
 	float D_angle = AngleDiffer(actualTargetAngle, currentAngle); // 在同一周期内求旋转角
 
@@ -147,11 +147,11 @@ void Reset_Function(SteeringWheel *pSteWhe)
 	}
 	if (HAL_GPIO_ReadPin(pSteWhe->Key_GPIO_Port, pSteWhe->Key_GPIO_Pin))
 	{
-		pSteWhe->putoutDirection = pSteWhe->putoutDirection + 0.3f;
+		pSteWhe->putoutDirection = pSteWhe->putoutDirection + 0.05f;
 	}
 	else
 	{
-		pSteWhe->putoutDirection = pSteWhe->putoutDirection - 0.3f;
+		pSteWhe->putoutDirection = pSteWhe->putoutDirection - 0.05f;
 	}
 
 	if ((HAL_GPIO_ReadPin(pSteWhe->Key_GPIO_Port, pSteWhe->Key_GPIO_Pin) << 4) != (pSteWhe->ready_edge_flag & 0x10))//如果上一次的IO电平与此次不同，那么认为复位成功

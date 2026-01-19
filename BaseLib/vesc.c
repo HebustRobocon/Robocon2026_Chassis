@@ -154,7 +154,7 @@ uint32_t VESC_ReceiveHandler(VESC_t *vesc,CAN_HandleTypeDef *hcan,uint32_t ID,ui
     uint8_t type=((ID>>8)&0xFF);
     if(type==CAN_PACKET_STATUS)    //是反馈包1
     {
-        vesc->rpm=(int32_t)(((uint32_t)buf[0])<<24)|(((uint32_t)buf[1])<<16)|(((uint32_t)buf[2])<<8)|(((uint32_t)buf[3]));
+        vesc->epm=(int32_t)(((uint32_t)buf[0])<<24)|(((uint32_t)buf[1])<<16)|(((uint32_t)buf[2])<<8)|(((uint32_t)buf[3]));
         vesc->current=((int16_t)((((uint16_t)buf[4])<<8)|(((uint16_t)buf[5]))))*0.1;
         vesc->duty_cycle=((int16_t)((((uint16_t)buf[6])<<8)|(((uint16_t)buf[7]))))*0.001;
     }

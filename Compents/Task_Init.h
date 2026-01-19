@@ -6,8 +6,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#define MAX_ROBOT_VEL 1.5f // m/s
-#define MAX_ROBOT_OMEGA ANGLE2RAD(30.0f) // rad/s
+#define MAX_ROBOT_VEL 5.0f // m/s
+#define MAX_ROBOT_OMEGA ANGLE2RAD(30.0f)
 
 void Task_Init(void);
 void Wheel_Task(void *pvParameters);

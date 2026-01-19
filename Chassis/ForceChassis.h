@@ -26,6 +26,7 @@ typedef void(*WheelError_Cb_t)(Chassis_t *_this,Wheel_t *wheel);           //轮
 struct Wheel_t{
     //当前轮子机械安装位置(在底盘中心坐标系的x，y和安装角fai(弧度制))
     Vector3D pos;
+		float last_rad;
 
     //回调接口函数(所有函数必须为非阻塞函数)
     SetWheelTarget_Cb_t set_target_cb;  //设置轮子的目标

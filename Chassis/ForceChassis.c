@@ -4,7 +4,7 @@
 #include "task.h"
 #include "matrix.h"
 
-
+float velocity[8] = {0};
 
 void ChassisCalculateProcess(void *param)
 {
@@ -12,7 +12,6 @@ void ChassisCalculateProcess(void *param)
     int wheel_num=chassis->wheel_num;
 
     float force[8];
-    float velocity[8];
     float cur_velocity[8];
     float robot_force[3];
     float robot_cur_vel[3];
@@ -58,7 +57,7 @@ void ChassisCalculateProcess(void *param)
 
         for (int i = 0; i < wheel_num; i++)     //设置期望到轮子上
         {
-            float torque_projection,exp_dir,exp_vel;
+            float torque_projection,exp_dir=chassis->wheel[i]->last_rad,exp_vel;
 
             exp_vel = sqrtf(velocity[2*i]*velocity[2*i]+velocity[2*i+1]*velocity[2*i+1]);
             if (exp_vel > chassis->dead_zone) // 防止奇点
@@ -70,6 +69,7 @@ void ChassisCalculateProcess(void *param)
                 torque_projection = 0.0f;
 
             chassis->wheel[i]->set_target_cb(chassis->wheel[i], exp_dir, exp_vel, torque_projection);
+						chassis->wheel[i]->last_rad=exp_dir;
         }
 
         // 正解部分:
