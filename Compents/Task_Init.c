@@ -1,8 +1,6 @@
 #include "Task_Init.h"
 #include "JY61.h"
 #include "encoder.h"
-#include "AS5047.h"
-#include "spi.h"
 
 SteeringWheel steeringWheelArray[3];
 Wheel_t wheelArray[3];
@@ -26,22 +24,22 @@ void Task_Init(void)
     __HAL_UART_ENABLE_IT(&huart4, UART_IT_IDLE);
     HAL_UART_Receive_DMA(&huart4, usart4_dma_buff, sizeof(usart4_dma_buff));
 	
-    steeringWheelArray[0].Key_GPIO_Port = GPIOA;
-    steeringWheelArray[0].Key_GPIO_Pin = GPIO_PIN_7;
+    steeringWheelArray[0].Key_GPIO_Port = GPIOE;
+    steeringWheelArray[0].Key_GPIO_Pin = GPIO_PIN_9;
     steeringWheelArray[1].Key_GPIO_Port = GPIOA;
-    steeringWheelArray[1].Key_GPIO_Pin = GPIO_PIN_6;
-    steeringWheelArray[2].Key_GPIO_Port = GPIOC;
-    steeringWheelArray[2].Key_GPIO_Pin = GPIO_PIN_4;
+    steeringWheelArray[1].Key_GPIO_Pin = GPIO_PIN_7;
+    steeringWheelArray[2].Key_GPIO_Port = GPIOE;
+    steeringWheelArray[2].Key_GPIO_Pin = GPIO_PIN_11;
 
-    wheelArray[0].pos.x =  0.52996f;
-    wheelArray[0].pos.y =  0.0f; 
+    wheelArray[0].pos.x =  0.3725f;
+    wheelArray[0].pos.y =  0.3925f; 
     wheelArray[0].pos.z =  PI/2;
-    wheelArray[1].pos.x =  0.0;
-    wheelArray[1].pos.y = -0.52932f;
-    wheelArray[1].pos.z = -PI/2;
-    wheelArray[2].pos.x =  0.0f;
-    wheelArray[2].pos.y =  0.52996f;
-    wheelArray[2].pos.z =  0;
+    wheelArray[1].pos.x =  0.3725;
+    wheelArray[1].pos.y =  -0.3925f;
+    wheelArray[1].pos.z =  PI/2;
+    wheelArray[2].pos.x =  -0.30733f;
+    wheelArray[2].pos.y =  0.0f;
+    wheelArray[2].pos.z =  PI/2;
 
     for(int i = 0; i < 3; i++)
     {

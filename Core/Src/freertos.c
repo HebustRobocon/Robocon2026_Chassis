@@ -38,7 +38,7 @@
 /* USER CODE BEGIN PD */
 SemaphoreHandle_t remote_semaphore;
 SemaphoreHandle_t Jy61_semaphore;
-
+uint16_t _stack[6] = {0};
 extern TaskHandle_t Wheel_Handles[4];
 extern TaskHandle_t Move_Task_Handle;
 extern TaskHandle_t Can_Send_Handle;
@@ -138,7 +138,6 @@ void MX_FREERTOS_Init(void) {
 
 }
 
-uint32_t _stack[7];
 /* USER CODE BEGIN Header_StartDefaultTask */
 /**
   * @brief  Function implementing the defaultTask thread.
@@ -158,10 +157,9 @@ void StartDefaultTask(void const * argument)
 		_stack[0]=uxTaskGetStackHighWaterMark(Wheel_Handles[0]);
 		_stack[1]=uxTaskGetStackHighWaterMark(Wheel_Handles[1]);
 		_stack[2]=uxTaskGetStackHighWaterMark(Wheel_Handles[2]);
-		_stack[3]=uxTaskGetStackHighWaterMark(Wheel_Handles[3]);
-		_stack[4]=uxTaskGetStackHighWaterMark(Move_Task_Handle);
-		_stack[5]=uxTaskGetStackHighWaterMark(Can_Send_Handle);
-		_stack[6]=uxTaskGetStackHighWaterMark(task_handle);
+		_stack[3]=uxTaskGetStackHighWaterMark(Move_Task_Handle);
+		_stack[4]=uxTaskGetStackHighWaterMark(Can_Send_Handle);
+		_stack[5]=uxTaskGetStackHighWaterMark(task_handle);
     osDelay(50);
   }
   /* USER CODE END StartDefaultTask */

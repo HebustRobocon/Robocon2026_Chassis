@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F407xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../BaseLib;../Bsp;../Middlewares/ST/ARM/DSP/Inc;../Eigen;../Matrix;../MDK-ARM;../USB_DEVICE/App;../USB_DEVICE/Target;../Middlewares/ST/STM32_USB_Device_Library/Core/Inc;../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc;..\Compents;..\Chassis</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../BaseLib;../Bsp;../Middlewares/ST/ARM/DSP/Inc;../Eigen;../Matrix;../MDK-ARM;../USB_DEVICE/App;../USB_DEVICE/Target;../Middlewares/ST/STM32_USB_Device_Library/Core/Inc;../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc;../Compents;../Chassis</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -642,62 +642,6 @@
               <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c</FilePath>
             </File>
             <File>
-              <FileName>stm32f4xx_hal_spi.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c</FilePath>
-              <FileOption>
-                <CommonProperty>
-                  <UseCPPCompiler>2</UseCPPCompiler>
-                  <RVCTCodeConst>0</RVCTCodeConst>
-                  <RVCTZI>0</RVCTZI>
-                  <RVCTOtherData>0</RVCTOtherData>
-                  <ModuleSelection>0</ModuleSelection>
-                  <IncludeInBuild>1</IncludeInBuild>
-                  <AlwaysBuild>2</AlwaysBuild>
-                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
-                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
-                  <PublicsOnly>2</PublicsOnly>
-                  <StopOnExitCode>11</StopOnExitCode>
-                  <CustomArgument></CustomArgument>
-                  <IncludeLibraryModules></IncludeLibraryModules>
-                  <ComprImg>1</ComprImg>
-                </CommonProperty>
-                <FileArmAds>
-                  <Cads>
-                    <interw>2</interw>
-                    <Optim>0</Optim>
-                    <oTime>2</oTime>
-                    <SplitLS>2</SplitLS>
-                    <OneElfS>2</OneElfS>
-                    <Strict>2</Strict>
-                    <EnumInt>2</EnumInt>
-                    <PlainCh>2</PlainCh>
-                    <Ropi>2</Ropi>
-                    <Rwpi>2</Rwpi>
-                    <wLevel>0</wLevel>
-                    <uThumb>2</uThumb>
-                    <uSurpInc>2</uSurpInc>
-                    <uC99>2</uC99>
-                    <uGnu>2</uGnu>
-                    <useXO>2</useXO>
-                    <v6Lang>0</v6Lang>
-                    <v6LangP>0</v6LangP>
-                    <vShortEn>2</vShortEn>
-                    <vShortWch>2</vShortWch>
-                    <v6Lto>2</v6Lto>
-                    <v6WtE>2</v6WtE>
-                    <v6Rtti>2</v6Rtti>
-                    <VariousControls>
-                      <MiscControls></MiscControls>
-                      <Define></Define>
-                      <Undefine></Undefine>
-                      <IncludePath></IncludePath>
-                    </VariousControls>
-                  </Cads>
-                </FileArmAds>
-              </FileOption>
-            </File>
-            <File>
               <FileName>stm32f4xx_hal_uart.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c</FilePath>
@@ -848,16 +792,6 @@
               <FilePath>..\BaseLib\WatchDog2.h</FilePath>
             </File>
             <File>
-              <FileName>list.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BaseLib\list.c</FilePath>
-            </File>
-            <File>
-              <FileName>list.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\BaseLib\list.h</FilePath>
-            </File>
-            <File>
               <FileName>PID_old.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\BaseLib\PID_old.c</FilePath>
@@ -923,14 +857,14 @@
               <FilePath>..\BaseLib\encoder.h</FilePath>
             </File>
             <File>
-              <FileName>AS5047.c</FileName>
+              <FileName>My_list.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\BaseLib\AS5047.c</FilePath>
+              <FilePath>..\BaseLib\My_list.c</FilePath>
             </File>
             <File>
-              <FileName>AS5047.h</FileName>
+              <FileName>My_list.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\BaseLib\AS5047.h</FilePath>
+              <FilePath>..\BaseLib\My_list.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -1234,118 +1168,6 @@
               <FileName>dma.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/dma.c</FilePath>
-              <FileOption>
-                <CommonProperty>
-                  <UseCPPCompiler>2</UseCPPCompiler>
-                  <RVCTCodeConst>0</RVCTCodeConst>
-                  <RVCTZI>0</RVCTZI>
-                  <RVCTOtherData>0</RVCTOtherData>
-                  <ModuleSelection>0</ModuleSelection>
-                  <IncludeInBuild>1</IncludeInBuild>
-                  <AlwaysBuild>2</AlwaysBuild>
-                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
-                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
-                  <PublicsOnly>2</PublicsOnly>
-                  <StopOnExitCode>11</StopOnExitCode>
-                  <CustomArgument></CustomArgument>
-                  <IncludeLibraryModules></IncludeLibraryModules>
-                  <ComprImg>1</ComprImg>
-                </CommonProperty>
-                <FileArmAds>
-                  <Cads>
-                    <interw>2</interw>
-                    <Optim>0</Optim>
-                    <oTime>2</oTime>
-                    <SplitLS>2</SplitLS>
-                    <OneElfS>2</OneElfS>
-                    <Strict>2</Strict>
-                    <EnumInt>2</EnumInt>
-                    <PlainCh>2</PlainCh>
-                    <Ropi>2</Ropi>
-                    <Rwpi>2</Rwpi>
-                    <wLevel>0</wLevel>
-                    <uThumb>2</uThumb>
-                    <uSurpInc>2</uSurpInc>
-                    <uC99>2</uC99>
-                    <uGnu>2</uGnu>
-                    <useXO>2</useXO>
-                    <v6Lang>0</v6Lang>
-                    <v6LangP>0</v6LangP>
-                    <vShortEn>2</vShortEn>
-                    <vShortWch>2</vShortWch>
-                    <v6Lto>2</v6Lto>
-                    <v6WtE>2</v6WtE>
-                    <v6Rtti>2</v6Rtti>
-                    <VariousControls>
-                      <MiscControls></MiscControls>
-                      <Define></Define>
-                      <Undefine></Undefine>
-                      <IncludePath></IncludePath>
-                    </VariousControls>
-                  </Cads>
-                </FileArmAds>
-              </FileOption>
-            </File>
-            <File>
-              <FileName>spi.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Core/Src/spi.c</FilePath>
-              <FileOption>
-                <CommonProperty>
-                  <UseCPPCompiler>2</UseCPPCompiler>
-                  <RVCTCodeConst>0</RVCTCodeConst>
-                  <RVCTZI>0</RVCTZI>
-                  <RVCTOtherData>0</RVCTOtherData>
-                  <ModuleSelection>0</ModuleSelection>
-                  <IncludeInBuild>1</IncludeInBuild>
-                  <AlwaysBuild>2</AlwaysBuild>
-                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
-                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
-                  <PublicsOnly>2</PublicsOnly>
-                  <StopOnExitCode>11</StopOnExitCode>
-                  <CustomArgument></CustomArgument>
-                  <IncludeLibraryModules></IncludeLibraryModules>
-                  <ComprImg>1</ComprImg>
-                </CommonProperty>
-                <FileArmAds>
-                  <Cads>
-                    <interw>2</interw>
-                    <Optim>0</Optim>
-                    <oTime>2</oTime>
-                    <SplitLS>2</SplitLS>
-                    <OneElfS>2</OneElfS>
-                    <Strict>2</Strict>
-                    <EnumInt>2</EnumInt>
-                    <PlainCh>2</PlainCh>
-                    <Ropi>2</Ropi>
-                    <Rwpi>2</Rwpi>
-                    <wLevel>0</wLevel>
-                    <uThumb>2</uThumb>
-                    <uSurpInc>2</uSurpInc>
-                    <uC99>2</uC99>
-                    <uGnu>2</uGnu>
-                    <useXO>2</useXO>
-                    <v6Lang>0</v6Lang>
-                    <v6LangP>0</v6LangP>
-                    <vShortEn>2</vShortEn>
-                    <vShortWch>2</vShortWch>
-                    <v6Lto>2</v6Lto>
-                    <v6WtE>2</v6WtE>
-                    <v6Rtti>2</v6Rtti>
-                    <VariousControls>
-                      <MiscControls></MiscControls>
-                      <Define></Define>
-                      <Undefine></Undefine>
-                      <IncludePath></IncludePath>
-                    </VariousControls>
-                  </Cads>
-                </FileArmAds>
-              </FileOption>
-            </File>
-            <File>
-              <FileName>tim.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Core/Src/tim.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -2310,6 +2132,69 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>Components</GroupName>
+          <Files>
+            <File>
+              <FileName>drive_callback.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Compents\drive_callback.c</FilePath>
+            </File>
+            <File>
+              <FileName>drive_callback.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Compents\drive_callback.h</FilePath>
+            </File>
+            <File>
+              <FileName>Pilot_callback.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Compents\Pilot_callback.c</FilePath>
+            </File>
+            <File>
+              <FileName>Pilot_callback.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Compents\Pilot_callback.h</FilePath>
+            </File>
+            <File>
+              <FileName>Task_Init.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Compents\Task_Init.c</FilePath>
+            </File>
+            <File>
+              <FileName>Task_Init.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Compents\Task_Init.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Chassis</GroupName>
+          <Files>
+            <File>
+              <FileName>AutoPilot.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Chassis\AutoPilot.c</FilePath>
+            </File>
+            <File>
+              <FileName>AutoPilot.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Chassis\AutoPilot.h</FilePath>
+            </File>
+            <File>
+              <FileName>ForceChassis.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Chassis\ForceChassis.c</FilePath>
+            </File>
+            <File>
+              <FileName>ForceChassis.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Chassis\ForceChassis.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>::CMSIS</GroupName>
+        </Group>
+        <Group>
           <GroupName>Middlewares/Library/DSP Library/DSP Library</GroupName>
           <GroupOption>
             <CommonProperty>
@@ -2406,69 +2291,6 @@
               </FileOption>
             </File>
           </Files>
-        </Group>
-        <Group>
-          <GroupName>Components</GroupName>
-          <Files>
-            <File>
-              <FileName>drive_callback.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Compents\drive_callback.c</FilePath>
-            </File>
-            <File>
-              <FileName>drive_callback.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Compents\drive_callback.h</FilePath>
-            </File>
-            <File>
-              <FileName>Pilot_callback.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Compents\Pilot_callback.c</FilePath>
-            </File>
-            <File>
-              <FileName>Pilot_callback.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Compents\Pilot_callback.h</FilePath>
-            </File>
-            <File>
-              <FileName>Task_Init.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Compents\Task_Init.c</FilePath>
-            </File>
-            <File>
-              <FileName>Task_Init.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Compents\Task_Init.h</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Chassis</GroupName>
-          <Files>
-            <File>
-              <FileName>AutoPilot.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Chassis\AutoPilot.c</FilePath>
-            </File>
-            <File>
-              <FileName>AutoPilot.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Chassis\AutoPilot.h</FilePath>
-            </File>
-            <File>
-              <FileName>ForceChassis.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Chassis\ForceChassis.c</FilePath>
-            </File>
-            <File>
-              <FileName>ForceChassis.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Chassis\ForceChassis.h</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>::CMSIS</GroupName>
         </Group>
       </Groups>
     </Target>
