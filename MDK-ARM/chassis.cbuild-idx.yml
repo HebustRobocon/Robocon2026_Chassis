@@ -1,5 +1,5 @@
 build-idx:
-  generated-by: csolution version 2.12.0
+  generated-by: csolution version 2.13.0+p3-g40b6564e
   csolution: chassis.csolution.yml
   cbuild-run: out/chassis+chassis.cbuild-run.yml
   tmpdir: tmp

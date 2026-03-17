@@ -1,4 +1,4 @@
-# Install script for directory: D:/Keil_Project/Robocon2026_Chassis_Frame/MDK-ARM/tmp
+# Install script for directory: D:/Keil_Project_Trae_CN/Robocon2026_Chassis/MDK-ARM/tmp
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -35,7 +35,7 @@ endif()
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
 if(CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "D:/Keil_Project/Robocon2026_Chassis_Frame/MDK-ARM/tmp/install_local_manifest.txt"
+  file(WRITE "D:/Keil_Project_Trae_CN/Robocon2026_Chassis/MDK-ARM/tmp/install_local_manifest.txt"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()
 if(CMAKE_INSTALL_COMPONENT)
@@ -51,6 +51,6 @@ else()
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "D:/Keil_Project/Robocon2026_Chassis_Frame/MDK-ARM/tmp/${CMAKE_INSTALL_MANIFEST}"
+  file(WRITE "D:/Keil_Project_Trae_CN/Robocon2026_Chassis/MDK-ARM/tmp/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()

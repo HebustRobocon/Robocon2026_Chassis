@@ -5,6 +5,9 @@ include("../roots.cmake")
 
 set(CONTEXT chassis+chassis)
 set(TARGET ${CONTEXT})
+set(DNAME STM32F407VETx)
+set(DPACK Keil::STM32F4xx_DFP@2.17.1)
+set(DPACK_DIR "${CMSIS_PACK_ROOT}/Keil/STM32F4xx_DFP/2.17.1")
 set(OUT_DIR "${SOLUTION_ROOT}/out/chassis/chassis")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(LD_SCRIPT "${SOLUTION_ROOT}/chassis_chassis.sct")
@@ -16,10 +19,14 @@ set(FPU SP_FPU)
 set(BYTE_ORDER Little-endian)
 
 # Toolchain config map
+set(COMPILER AC6)
 include("toolchain.cmake")
 
 # Setup project
 project(${CONTEXT} LANGUAGES ASM C)
+
+# Enable color diagnostics
+set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 # Compilation database
 add_custom_target(database
@@ -47,6 +54,7 @@ target_include_directories(${CONTEXT} PUBLIC
     "${SOLUTION_ROOT}/../Drivers/CMSIS/Include"
     "${SOLUTION_ROOT}/../Middlewares/ST/ARM/DSP/Inc"
     "${SOLUTION_ROOT}/../Eigen"
+    "${SOLUTION_ROOT}/."
     "${SOLUTION_ROOT}/../USB_DEVICE/App"
     "${SOLUTION_ROOT}/../USB_DEVICE/Target"
     "${SOLUTION_ROOT}/../Middlewares/ST/STM32_USB_Device_Library/Core/Inc"
@@ -58,7 +66,8 @@ target_include_directories(${CONTEXT} PUBLIC
   "${SOLUTION_ROOT}/../BaseLib"
   "${SOLUTION_ROOT}/../Bsp"
   "${SOLUTION_ROOT}/../Matrix"
-  "${SOLUTION_ROOT}/."
+  "${SOLUTION_ROOT}/../Compents"
+  "${SOLUTION_ROOT}/../Chassis"
 )
 
 # Defines
@@ -132,8 +141,11 @@ target_link_libraries(${CONTEXT} PUBLIC
   Group_Application_User_USB_DEVICE_App
   Group_Application_User_USB_DEVICE_Target
   Group_Middlewares_USB_Device_Library
+  Group_Components
+  Group_Chassis
   Group_Middlewares_Library_DSP_Library_DSP_Library
   ARM_CMSIS_CORE_6_1_1
+  ${SOLUTION_ROOT}/../Middlewares/ST/ARM/DSP/Lib/arm_cortexM4lf_math.lib
 )
 
 # Linker options
@@ -153,4 +165,5 @@ target_link_options(${CONTEXT} PUBLIC
   "SHELL:--summary_stderr"
   "SHELL:--info summarysizes"
 )
-set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})
+set(LD_DEPS ${LD_SCRIPT})
+set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS "${LD_DEPS}")

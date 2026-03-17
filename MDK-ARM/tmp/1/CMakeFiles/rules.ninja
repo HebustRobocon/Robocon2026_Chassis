@@ -123,6 +123,26 @@ rule C_COMPILER__Group_Middlewares_USB_Device_Library_unscanned_
 
 
 #############################################
+# Rule for compiling C files.
+
+rule C_COMPILER__Group_Components_unscanned_
+  depfile = $DEP_FILE
+  deps = gcc
+  command = ${LAUNCHER}${CODE_CHECK}c:\Users\LwZhy\.vcpkg\artifacts\2139c4c6\compilers.arm.armclang\6.24.0\bin\armclang.exe --target=arm-arm-none-eabi $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
+  description = Building C object $out
+
+
+#############################################
+# Rule for compiling C files.
+
+rule C_COMPILER__Group_Chassis_unscanned_
+  depfile = $DEP_FILE
+  deps = gcc
+  command = ${LAUNCHER}${CODE_CHECK}c:\Users\LwZhy\.vcpkg\artifacts\2139c4c6\compilers.arm.armclang\6.24.0\bin\armclang.exe --target=arm-arm-none-eabi $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
+  description = Building C object $out
+
+
+#############################################
 # Rule for running custom commands.
 
 rule CUSTOM_COMMAND
@@ -134,7 +154,7 @@ rule CUSTOM_COMMAND
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = C:\Users\LwZhy\.vcpkg\artifacts\2139c4c6\tools.kitware.cmake\3.31.5\bin\cmake.exe --regenerate-during-build -SD:\Keil_Project\Robocon2026_Chassis_Frame\MDK-ARM\tmp\chassis+chassis -BD:\Keil_Project\Robocon2026_Chassis_Frame\MDK-ARM\tmp\1
+  command = C:\Users\LwZhy\.vcpkg\artifacts\2139c4c6\tools.kitware.cmake\3.31.5\bin\cmake.exe --regenerate-during-build -SD:\Keil_Project_Trae_CN\Robocon2026_Chassis\MDK-ARM\tmp\chassis+chassis -BD:\Keil_Project_Trae_CN\Robocon2026_Chassis\MDK-ARM\tmp\1
   description = Re-running CMake...
   generator = 1
 

@@ -313,7 +313,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>0</Optim>
+            <Optim>1</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -2164,6 +2164,41 @@
               <FileType>5</FileType>
               <FilePath>..\Compents\Task_Init.h</FilePath>
             </File>
+            <File>
+              <FileName>dataFrame.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Compents\dataFrame.h</FilePath>
+            </File>
+            <File>
+              <FileName>comm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Compents\comm.c</FilePath>
+            </File>
+            <File>
+              <FileName>comm.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Compents\comm.h</FilePath>
+            </File>
+            <File>
+              <FileName>comm_stm32_hal_middle.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Compents\comm_stm32_hal_middle.c</FilePath>
+            </File>
+            <File>
+              <FileName>comm_stm32_hal_middle.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Compents\comm_stm32_hal_middle.h</FilePath>
+            </File>
+            <File>
+              <FileName>data_poll.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Compents\data_poll.c</FilePath>
+            </File>
+            <File>
+              <FileName>data_poll.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Compents\data_poll.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -2190,9 +2225,6 @@
               <FilePath>..\Chassis\ForceChassis.h</FilePath>
             </File>
           </Files>
-        </Group>
-        <Group>
-          <GroupName>::CMSIS</GroupName>
         </Group>
         <Group>
           <GroupName>Middlewares/Library/DSP Library/DSP Library</GroupName>
@@ -2291,6 +2323,9 @@
               </FileOption>
             </File>
           </Files>
+        </Group>
+        <Group>
+          <GroupName>::CMSIS</GroupName>
         </Group>
       </Groups>
     </Target>

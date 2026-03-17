@@ -50,7 +50,6 @@ add_library(Group_Drivers_STM32F4xx_HAL_Driver OBJECT
   "${SOLUTION_ROOT}/../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c"
   "${SOLUTION_ROOT}/../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c"
   "${SOLUTION_ROOT}/../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c"
-  "${SOLUTION_ROOT}/../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c"
   "${SOLUTION_ROOT}/../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c"
 )
 target_include_directories(Group_Drivers_STM32F4xx_HAL_Driver PUBLIC
@@ -76,9 +75,6 @@ set_source_files_properties("${SOLUTION_ROOT}/../Drivers/STM32F4xx_HAL_Driver/Sr
   COMPILE_OPTIONS ""
 )
 set_source_files_properties("${SOLUTION_ROOT}/../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_usb.c" PROPERTIES
-  COMPILE_OPTIONS ""
-)
-set_source_files_properties("${SOLUTION_ROOT}/../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c" PROPERTIES
   COMPILE_OPTIONS ""
 )
 
@@ -142,27 +138,19 @@ add_library(Group_BaseLib OBJECT
   "${SOLUTION_ROOT}/../BaseLib/Canbuffer.c"
   "${SOLUTION_ROOT}/../BaseLib/slope.c"
   "${SOLUTION_ROOT}/../BaseLib/WatchDog2.c"
-  "${SOLUTION_ROOT}/../BaseLib/list.c"
   "${SOLUTION_ROOT}/../BaseLib/PID_old.c"
   "${SOLUTION_ROOT}/../BaseLib/STP-23L.c"
-  "${SOLUTION_ROOT}/../BaseLib/AutoPilot.c"
-  "${SOLUTION_ROOT}/../BaseLib/ForceChassis.c"
   "${SOLUTION_ROOT}/../Matrix/svd.c"
-  "${SOLUTION_ROOT}/drive_callback.c"
   "${SOLUTION_ROOT}/../BaseLib/vesc.c"
-  "${SOLUTION_ROOT}/../BaseLib/Task_Init.c"
-  "${SOLUTION_ROOT}/Pilot_callback.c"
   "${SOLUTION_ROOT}/../BaseLib/JY61.c"
-  "${SOLUTION_ROOT}/../BaseLib/WatchDog.c"
   "${SOLUTION_ROOT}/../BaseLib/encoder.c"
-  "${SOLUTION_ROOT}/../BaseLib/AS5047.c"
+  "${SOLUTION_ROOT}/../BaseLib/My_list.c"
 )
 target_include_directories(Group_BaseLib PUBLIC
   $<TARGET_PROPERTY:${CONTEXT},INTERFACE_INCLUDE_DIRECTORIES>
   "${SOLUTION_ROOT}/../BaseLib"
   "${SOLUTION_ROOT}/../Bsp"
   "${SOLUTION_ROOT}/../Matrix"
-  "${SOLUTION_ROOT}/."
 )
 target_compile_definitions(Group_BaseLib PUBLIC
   $<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_DEFINITIONS>
@@ -185,8 +173,6 @@ add_library(Group_Application_User_Core OBJECT
   "${SOLUTION_ROOT}/../Core/Src/freertos.c"
   "${SOLUTION_ROOT}/../Core/Src/can.c"
   "${SOLUTION_ROOT}/../Core/Src/dma.c"
-  "${SOLUTION_ROOT}/../Core/Src/spi.c"
-  "${SOLUTION_ROOT}/../Core/Src/tim.c"
   "${SOLUTION_ROOT}/../Core/Src/usart.c"
   "${SOLUTION_ROOT}/../Core/Src/stm32f4xx_it.c"
   "${SOLUTION_ROOT}/../Core/Src/stm32f4xx_hal_msp.c"
@@ -224,12 +210,6 @@ set_source_files_properties("${SOLUTION_ROOT}/../Core/Src/can.c" PROPERTIES
   COMPILE_OPTIONS ""
 )
 set_source_files_properties("${SOLUTION_ROOT}/../Core/Src/dma.c" PROPERTIES
-  COMPILE_OPTIONS ""
-)
-set_source_files_properties("${SOLUTION_ROOT}/../Core/Src/spi.c" PROPERTIES
-  COMPILE_OPTIONS ""
-)
-set_source_files_properties("${SOLUTION_ROOT}/../Core/Src/tim.c" PROPERTIES
   COMPILE_OPTIONS ""
 )
 set_source_files_properties("${SOLUTION_ROOT}/../Core/Src/usart.c" PROPERTIES
@@ -366,6 +346,56 @@ set_source_files_properties("${SOLUTION_ROOT}/../Middlewares/ST/STM32_USB_Device
 )
 set_source_files_properties("${SOLUTION_ROOT}/../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c" PROPERTIES
   COMPILE_OPTIONS ""
+)
+
+# group Components
+add_library(Group_Components OBJECT
+  "${SOLUTION_ROOT}/../Compents/drive_callback.c"
+  "${SOLUTION_ROOT}/../Compents/Pilot_callback.c"
+  "${SOLUTION_ROOT}/../Compents/Task_Init.c"
+  "${SOLUTION_ROOT}/../Compents/comm.c"
+  "${SOLUTION_ROOT}/../Compents/comm_stm32_hal_middle.c"
+  "${SOLUTION_ROOT}/../Compents/data_poll.c"
+)
+target_include_directories(Group_Components PUBLIC
+  $<TARGET_PROPERTY:${CONTEXT},INTERFACE_INCLUDE_DIRECTORIES>
+  "${SOLUTION_ROOT}/../Compents"
+)
+target_compile_definitions(Group_Components PUBLIC
+  $<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_DEFINITIONS>
+)
+add_library(Group_Components_ABSTRACTIONS INTERFACE)
+target_link_libraries(Group_Components_ABSTRACTIONS INTERFACE
+  ${CONTEXT}_ABSTRACTIONS
+)
+target_compile_options(Group_Components PUBLIC
+  $<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_OPTIONS>
+)
+target_link_libraries(Group_Components PUBLIC
+  Group_Components_ABSTRACTIONS
+)
+
+# group Chassis
+add_library(Group_Chassis OBJECT
+  "${SOLUTION_ROOT}/../Chassis/AutoPilot.c"
+  "${SOLUTION_ROOT}/../Chassis/ForceChassis.c"
+)
+target_include_directories(Group_Chassis PUBLIC
+  $<TARGET_PROPERTY:${CONTEXT},INTERFACE_INCLUDE_DIRECTORIES>
+  "${SOLUTION_ROOT}/../Chassis"
+)
+target_compile_definitions(Group_Chassis PUBLIC
+  $<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_DEFINITIONS>
+)
+add_library(Group_Chassis_ABSTRACTIONS INTERFACE)
+target_link_libraries(Group_Chassis_ABSTRACTIONS INTERFACE
+  ${CONTEXT}_ABSTRACTIONS
+)
+target_compile_options(Group_Chassis PUBLIC
+  $<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_OPTIONS>
+)
+target_link_libraries(Group_Chassis PUBLIC
+  Group_Chassis_ABSTRACTIONS
 )
 
 # group Middlewares/Library/DSP Library/DSP Library

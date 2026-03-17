@@ -27,6 +27,8 @@ project:
         - ../USB_DEVICE/Target
         - ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc
         - ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc
+        - ../Compents
+        - ../Chassis
       debug: "on"
       define:
         - USE_HAL_DRIVER
@@ -107,10 +109,6 @@ project:
         - file: ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c
         - file: ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c
         - file: ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c
-        - file: ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c
-          misc:
-            - CPP:
-                - -xc++
         - file: ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c
     - group: Drivers/CMSIS
       files:
@@ -144,35 +142,21 @@ project:
         - file: ../BaseLib/slope.h
         - file: ../BaseLib/WatchDog2.c
         - file: ../BaseLib/WatchDog2.h
-        - file: ../BaseLib/list.c
-        - file: ../BaseLib/list.h
         - file: ../BaseLib/PID_old.c
         - file: ../BaseLib/PID_old.h
         - file: ../BaseLib/STP-23L.c
         - file: ../BaseLib/STP-23L.h
-        - file: ../BaseLib/AutoPilot.c
-        - file: ../BaseLib/AutoPilot.h
-        - file: ../BaseLib/ForceChassis.c
         - file: ../Matrix/svd.c
         - file: ../Matrix/svd.h
-        - file: ../BaseLib/ForceChassis.h
-        - file: drive_callback.c
-        - file: drive_callback.h
         - file: ../BaseLib/vesc.c
         - file: ../BaseLib/vesc.h
-        - file: ../BaseLib/Task_Init.c
-        - file: ../BaseLib/Task_Init.h
-        - file: Pilot_callback.c
-        - file: Pilot_callback.h
         - file: ../BaseLib/Vector.h
         - file: ../BaseLib/JY61.c
         - file: ../BaseLib/JY61.h
-        - file: ../BaseLib/WatchDog.c
-        - file: ../BaseLib/WatchDog.h
         - file: ../BaseLib/encoder.c
         - file: ../BaseLib/encoder.h
-        - file: ../BaseLib/AS5047.c
-        - file: ../BaseLib/AS5047.h
+        - file: ../BaseLib/My_list.c
+        - file: ../BaseLib/My_list.h
     - group: Application/User/Core
       optimize: none
       misc:
@@ -197,14 +181,6 @@ project:
             - CPP:
                 - -xc++
         - file: ../Core/Src/dma.c
-          misc:
-            - CPP:
-                - -xc++
-        - file: ../Core/Src/spi.c
-          misc:
-            - CPP:
-                - -xc++
-        - file: ../Core/Src/tim.c
           misc:
             - CPP:
                 - -xc++
@@ -281,6 +257,27 @@ project:
           misc:
             - CPP:
                 - -xc++
+    - group: Components
+      files:
+        - file: ../Compents/drive_callback.c
+        - file: ../Compents/drive_callback.h
+        - file: ../Compents/Pilot_callback.c
+        - file: ../Compents/Pilot_callback.h
+        - file: ../Compents/Task_Init.c
+        - file: ../Compents/Task_Init.h
+        - file: ../Compents/dataFrame.h
+        - file: ../Compents/comm.c
+        - file: ../Compents/comm.h
+        - file: ../Compents/comm_stm32_hal_middle.c
+        - file: ../Compents/comm_stm32_hal_middle.h
+        - file: ../Compents/data_poll.c
+        - file: ../Compents/data_poll.h
+    - group: Chassis
+      files:
+        - file: ../Chassis/AutoPilot.c
+        - file: ../Chassis/AutoPilot.h
+        - file: ../Chassis/ForceChassis.c
+        - file: ../Chassis/ForceChassis.h
     - group: Middlewares/Library/DSP Library/DSP Library
       optimize: none
       misc:

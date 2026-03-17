@@ -102,7 +102,7 @@ int main(void)
   MX_CAN2_Init();
   MX_UART4_Init();
   MX_UART5_Init();
-  /* USER CODE BEGIN 2 */	
+  /* USER CODE BEGIN 2 */
 	CanFilter_Init(&hcan1);
 	CanFilter_Init(&hcan2);
 	HAL_CAN_Start(&hcan1); 

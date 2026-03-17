@@ -3,6 +3,9 @@ include(ExternalProject)
 	
 project("chassis" NONE)
 
+# Enable color diagnostics
+set(CMAKE_COLOR_DIAGNOSTICS ON)
+
 # Roots
 include("roots.cmake")
 
@@ -13,12 +16,17 @@ set(CONTEXTS
 list(LENGTH CONTEXTS CONTEXTS_LENGTH)
 math(EXPR CONTEXTS_LENGTH "${CONTEXTS_LENGTH}-1")
 
+set(COMPILERS
+  "AC6 V6.24.0"
+)
+
 set(DIRS
   "${CMAKE_CURRENT_SOURCE_DIR}/chassis+chassis"
 )
 
 set(OUTPUTS_1
   "${SOLUTION_ROOT}/out/chassis/chassis/chassis.axf"
+  "${SOLUTION_ROOT}/out/chassis/chassis/compile_commands.json"
 )
 
 set(ARGS
@@ -35,6 +43,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
 
   math(EXPR N "${INDEX}+1")
   list(GET CONTEXTS ${INDEX} CONTEXT)
+  list(GET COMPILERS ${INDEX} COMPILER)
   list(GET DIRS ${INDEX} DIR)
 
   # Create external project, set configure and build steps
@@ -45,7 +54,8 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
     INSTALL_COMMAND       ""
     TEST_COMMAND          ""
     CONFIGURE_COMMAND     ${CMAKE_COMMAND} -G Ninja -S <SOURCE_DIR> -B <BINARY_DIR> ${ARGS} 
-    BUILD_COMMAND         ${CMAKE_COMMAND} -E echo "Building CMake target '${CONTEXT}'"
+    BUILD_COMMAND         ${CMAKE_COMMAND} -E cmake_echo_color --blue --bold "Building CMake target '${CONTEXT}'"
+    COMMAND               ${CMAKE_COMMAND} -E echo "Using compiler: ${COMPILER}"
     COMMAND               ${CMAKE_COMMAND} --build <BINARY_DIR>
     BUILD_ALWAYS          TRUE
     BUILD_BYPRODUCTS      ${OUTPUTS_${N}}

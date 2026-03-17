@@ -27,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "Task_Init.h"
 #include "semphr.h"
+#include "comm_stm32_hal_middle.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -36,13 +37,16 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-SemaphoreHandle_t remote_semaphore;
 SemaphoreHandle_t Jy61_semaphore;
-uint16_t _stack[6] = {0};
-extern TaskHandle_t Wheel_Handles[4];
-extern TaskHandle_t Move_Task_Handle;
+uint16_t _stack[11] = {0};
+extern TaskHandle_t Wheel_Handles[3];
+extern TaskHandle_t Remote_Jy61_Task_Handle;
 extern TaskHandle_t Can_Send_Handle;
 extern TaskHandle_t task_handle;
+extern TaskHandle_t SendDataPackTask_handle;
+extern TaskHandle_t ReceiveDataPackTask_handle;
+extern TaskHandle_t ACKTimeoutCheckTask_handle;
+extern CommHandle_t *g_comm_handle;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -52,8 +56,7 @@ extern TaskHandle_t task_handle;
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-//TaskHandle_t RemoteControlTaskHandle;
-//TaskHandle_t ChassisControlTaskHandle;
+
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
 
@@ -123,13 +126,12 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
-  remote_semaphore=xSemaphoreCreateBinary();
 	Jy61_semaphore =xSemaphoreCreateBinary();
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 256);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -149,17 +151,22 @@ void StartDefaultTask(void const * argument)
 {
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();
+	Task_Init();
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
-	Task_Init();
   for(;;)
   {
 		_stack[0]=uxTaskGetStackHighWaterMark(Wheel_Handles[0]);
 		_stack[1]=uxTaskGetStackHighWaterMark(Wheel_Handles[1]);
 		_stack[2]=uxTaskGetStackHighWaterMark(Wheel_Handles[2]);
-		_stack[3]=uxTaskGetStackHighWaterMark(Move_Task_Handle);
+		_stack[3]=uxTaskGetStackHighWaterMark(Remote_Jy61_Task_Handle);
 		_stack[4]=uxTaskGetStackHighWaterMark(Can_Send_Handle);
 		_stack[5]=uxTaskGetStackHighWaterMark(task_handle);
+		_stack[6]=uxTaskGetStackHighWaterMark(SendDataPackTask_handle);
+		_stack[7]=uxTaskGetStackHighWaterMark(ReceiveDataPackTask_handle);
+		_stack[8]=uxTaskGetStackHighWaterMark(ACKTimeoutCheckTask_handle);
+		_stack[9]=uxTaskGetStackHighWaterMark(defaultTaskHandle);
+		_stack[10]=uxTaskGetStackHighWaterMark(g_comm_handle->tx_task_handle);
     osDelay(50);
   }
   /* USER CODE END StartDefaultTask */

@@ -1,11 +1,11 @@
 
 cmake_minimum_required(VERSION ${CMAKE_VERSION}) # this file comes with cmake
 
-set(command "C:/Users/LwZhy/.vcpkg/artifacts/2139c4c6/tools.kitware.cmake/3.31.5/bin/cmake.exe;--build;D:/Keil_Project/Robocon2026_Chassis_Frame/MDK-ARM/tmp/1;--target;database")
+set(command "C:/Users/LwZhy/.vcpkg/artifacts/2139c4c6/tools.kitware.cmake/3.31.5/bin/cmake.exe;--build;D:/Keil_Project_Trae_CN/Robocon2026_Chassis/MDK-ARM/tmp/1;--target;database")
 set(log_merged "")
 set(log_output_on_failure "ON")
-set(stdout_log "D:/Keil_Project/Robocon2026_Chassis_Frame/MDK-ARM/tmp/chassis+chassis/src/chassis+chassis-stamp/chassis+chassis-database-out.log")
-set(stderr_log "D:/Keil_Project/Robocon2026_Chassis_Frame/MDK-ARM/tmp/chassis+chassis/src/chassis+chassis-stamp/chassis+chassis-database-err.log")
+set(stdout_log "D:/Keil_Project_Trae_CN/Robocon2026_Chassis/MDK-ARM/tmp/chassis+chassis/src/chassis+chassis-stamp/chassis+chassis-database-out.log")
+set(stderr_log "D:/Keil_Project_Trae_CN/Robocon2026_Chassis/MDK-ARM/tmp/chassis+chassis/src/chassis+chassis-stamp/chassis+chassis-database-err.log")
 execute_process(
   COMMAND ${command}
   RESULT_VARIABLE result
@@ -31,7 +31,7 @@ if(result)
   if (${log_merged})
     set(msg "${msg}\nSee also\n  ${stderr_log}")
   else()
-    set(msg "${msg}\nSee also\n  D:/Keil_Project/Robocon2026_Chassis_Frame/MDK-ARM/tmp/chassis+chassis/src/chassis+chassis-stamp/chassis+chassis-database-*.log")
+    set(msg "${msg}\nSee also\n  D:/Keil_Project_Trae_CN/Robocon2026_Chassis/MDK-ARM/tmp/chassis+chassis/src/chassis+chassis-stamp/chassis+chassis-database-*.log")
   endif()
   if (${log_output_on_failure})
     message(SEND_ERROR "${msg}")
@@ -50,7 +50,7 @@ if(result)
   endif()
 else()
   if(NOT "Ninja" MATCHES "Ninja")
-    set(msg "chassis+chassis database command succeeded.  See also D:/Keil_Project/Robocon2026_Chassis_Frame/MDK-ARM/tmp/chassis+chassis/src/chassis+chassis-stamp/chassis+chassis-database-*.log")
+    set(msg "chassis+chassis database command succeeded.  See also D:/Keil_Project_Trae_CN/Robocon2026_Chassis/MDK-ARM/tmp/chassis+chassis/src/chassis+chassis-stamp/chassis+chassis-database-*.log")
     message(STATUS "${msg}")
   endif()
 endif()
