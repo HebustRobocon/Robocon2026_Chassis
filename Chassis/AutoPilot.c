@@ -1,6 +1,5 @@
 #include "AutoPilot.h"
 
-
 static inline void set_quintic(PathLine_t *line, float p0, float v0, float a0, float pT, float vT, float aT,float dt)
 {
     v0=v0*dt;       //速度/加速度参数归一化
@@ -29,56 +28,11 @@ float line_second_derivative(const PathLine_t *line, float t)
     return 2.0f * line->c + 6.0f * line->d * t + 12.0f * line->e * t * t + 20.0f * line->f * t * t * t;
 }
 
-static uint32_t CalculatePosVelAcc(AutoPilotReq_t *desc, float cur_time, Vector3D *out_pos, Vector3D *out_vel, Vector3D *out_acc)
-{
-    float cur_step = cur_time / desc->runTime;
-    PathLine_t *line = (PathLine_t *)desc;
-
-    out_pos->x = line[0].a + line[0].b * cur_step + line[0].c * powf(cur_step, 2.0f) +
-                 line[0].d * powf(cur_step, 3.0f) + line[0].e * powf(cur_step, 4.0f) +
-                 line[0].f * powf(cur_step, 5.0f);
-
-    out_pos->y = line[1].a + line[1].b * cur_step + line[1].c * powf(cur_step, 2.0f) +
-                 line[1].d * powf(cur_step, 3.0f) + line[1].e * powf(cur_step, 4.0f) +
-                 line[1].f * powf(cur_step, 5.0f);
-
-    out_pos->z = line[2].a + line[2].b * cur_step + line[2].c * powf(cur_step, 2.0f) +
-                 line[2].d * powf(cur_step, 3.0f) + line[2].e * powf(cur_step, 4.0f) +
-                 line[2].f * powf(cur_step, 5.0f);
-
-    out_vel->x = (line[0].b + 2 * line[0].c * cur_step + 3 * line[0].d * powf(cur_step, 2.0f) +
-                  4 * line[0].e * powf(cur_step, 3.0f) + 5 * line[0].f * powf(cur_step, 4.0f)) /
-                 desc->runTime;
-
-    out_vel->y = (line[1].b + 2 * line[1].c * cur_step + 3 * line[1].d * powf(cur_step, 2.0f) +
-                  4 * line[1].e * powf(cur_step, 3.0f) + 5 * line[1].f * powf(cur_step, 4.0f)) /
-                 desc->runTime;
-
-    out_vel->z = (line[2].b + 2 * line[2].c * cur_step + 3 * line[2].d * powf(cur_step, 2.0f) +
-                  4 * line[2].e * powf(cur_step, 3.0f) + 5 * line[2].f * powf(cur_step, 4.0f)) /
-                 desc->runTime;
-
-    // === 加速度 ===
-    out_acc->x = (2 * line[0].c + 6 * line[0].d * cur_step + 12 * line[0].e * powf(cur_step, 2.0f) +
-                  20 * line[0].f * powf(cur_step, 3.0f)) /
-                 (desc->runTime * desc->runTime);
-
-    out_acc->y = (2 * line[1].c + 6 * line[1].d * cur_step + 12 * line[1].e * powf(cur_step, 2.0f) +
-                  20 * line[1].f * powf(cur_step, 3.0f)) /
-                 (desc->runTime * desc->runTime);
-
-    out_acc->z = (2 * line[2].c + 6 * line[2].d * cur_step + 12 * line[2].e * powf(cur_step, 2.0f) +
-                  20 * line[2].f * powf(cur_step, 3.0f)) /
-                 (desc->runTime * desc->runTime);
-
-    return 1;
-}
-
 static void AutoPilotProcess(void *param)
 {
     AutoPilot_t *handle = (AutoPilot_t *)param;
     uint32_t wake_dt = handle->dt_ms;
-    AutoPilotReq_t current_req;
+    MoveDest_t current_dest;
 
     Vector3D pos, vel, acc;
 
@@ -91,14 +45,48 @@ static void AutoPilotProcess(void *param)
     while (1)
     {
         autopilot_exit_state = 0;
-        xQueueReceive(handle->runReqQueue, &current_req, portMAX_DELAY); // 等待新的运动请求
+        xQueueReceive(handle->runReqQueue, &current_dest, portMAX_DELAY); // 等待新的运动请求
         xSemaphoreTake(handle->cancleReqSemphore, 0);                    // 清空信号量
         handle->currentState = AUTOPILOT_STAGE_RUNNING;
         TickType_t pxPreviousWakeTime = xTaskGetTickCount();
         float step_time = 0.0f;
-        while (step_time < current_req.runTime) // 等待走完全流程
+        while (step_time < current_dest.exp_time) // 等待走完全流程
         {
-            CalculatePosVelAcc(&current_req, step_time, &pos, &vel, &acc); // 根据规划出的曲线计算当前时刻位置，速度，加速度
+            float cur_step = step_time / current_dest.exp_time;
+            
+            // 计算位置
+            pos.x = current_dest.x_line.a + current_dest.x_line.b * cur_step + current_dest.x_line.c * powf(cur_step, 2.0f) +
+                   current_dest.x_line.d * powf(cur_step, 3.0f) + current_dest.x_line.e * powf(cur_step, 4.0f) +
+                   current_dest.x_line.f * powf(cur_step, 5.0f);
+            pos.y = current_dest.y_line.a + current_dest.y_line.b * cur_step + current_dest.y_line.c * powf(cur_step, 2.0f) +
+                   current_dest.y_line.d * powf(cur_step, 3.0f) + current_dest.y_line.e * powf(cur_step, 4.0f) +
+                   current_dest.y_line.f * powf(cur_step, 5.0f);
+            pos.z = current_dest.z_line.a + current_dest.z_line.b * cur_step + current_dest.z_line.c * powf(cur_step, 2.0f) +
+                   current_dest.z_line.d * powf(cur_step, 3.0f) + current_dest.z_line.e * powf(cur_step, 4.0f) +
+                   current_dest.z_line.f * powf(cur_step, 5.0f);
+            
+            // 计算速度
+            vel.x = (current_dest.x_line.b + 2 * current_dest.x_line.c * cur_step + 3 * current_dest.x_line.d * powf(cur_step, 2.0f) +
+                    4 * current_dest.x_line.e * powf(cur_step, 3.0f) + 5 * current_dest.x_line.f * powf(cur_step, 4.0f)) /
+                   current_dest.exp_time;
+            vel.y = (current_dest.y_line.b + 2 * current_dest.y_line.c * cur_step + 3 * current_dest.y_line.d * powf(cur_step, 2.0f) +
+                    4 * current_dest.y_line.e * powf(cur_step, 3.0f) + 5 * current_dest.y_line.f * powf(cur_step, 4.0f)) /
+                   current_dest.exp_time;
+            vel.z = (current_dest.z_line.b + 2 * current_dest.z_line.c * cur_step + 3 * current_dest.z_line.d * powf(cur_step, 2.0f) +
+                    4 * current_dest.z_line.e * powf(cur_step, 3.0f) + 5 * current_dest.z_line.f * powf(cur_step, 4.0f)) /
+                   current_dest.exp_time;
+            
+            // 计算加速度
+            acc.x = (2 * current_dest.x_line.c + 6 * current_dest.x_line.d * cur_step + 12 * current_dest.x_line.e * powf(cur_step, 2.0f) +
+                    20 * current_dest.x_line.f * powf(cur_step, 3.0f)) /
+                   (current_dest.exp_time * current_dest.exp_time);
+            acc.y = (2 * current_dest.y_line.c + 6 * current_dest.y_line.d * cur_step + 12 * current_dest.y_line.e * powf(cur_step, 2.0f) +
+                    20 * current_dest.y_line.f * powf(cur_step, 3.0f)) /
+                   (current_dest.exp_time * current_dest.exp_time);
+            acc.z = (2 * current_dest.z_line.c + 6 * current_dest.z_line.d * cur_step + 12 * current_dest.z_line.e * powf(cur_step, 2.0f) +
+                    20 * current_dest.z_line.f * powf(cur_step, 3.0f)) /
+                   (current_dest.exp_time * current_dest.exp_time);
+            
             handle->callBack.setPos_cb(pos);
             handle->callBack.setVel_cb(vel);
             if(handle->callBack.setAcc_cb)      //如果加速度回调函数为空，那么说明该底盘没有提供力控接口，故直接执行速度/位置控制
@@ -121,8 +109,8 @@ static void AutoPilotProcess(void *param)
             handle->callBack.setAcc_cb(ZERO_VECTOR());
             xQueueReset(handle->runReqQueue);
         }
-        if(current_req.finish_cb)
-            current_req.finish_cb(handle->currentState, &current_req,current_req.user_data);
+        if(current_dest.finish_cb)
+            current_dest.finish_cb(handle->currentState, NULL, current_dest.user_data);
     }
 }
 
@@ -206,13 +194,12 @@ float AutoPilotTrajectoryPlane(AutoPilotReq_t *req, MoveDest_t *dest, float vel_
     return run_time;
 }
 
-void AutoPilotInit(AutoPilot_t *handle, AutoPilotCallback_t *callBackGroup, uint32_t priority, uint32_t require_queue_size, uint32_t update_dt)
+void AutoPilotInit(AutoPilot_t *handle, AutoPilotCallback_t *callBackGroup, uint32_t priority, uint32_t require_queue_size, uint32_t update_dt, TaskHandle_t task_handle)
 {
-	TaskHandle_t task_handle;
     handle->dt_ms = update_dt;
     handle->callBack = *callBackGroup;
     handle->currentState = AUTOPILOT_STAGE_IDEL;
-    handle->runReqQueue = xQueueCreate(require_queue_size, sizeof(AutoPilotReq_t));
+    handle->runReqQueue = xQueueCreate(require_queue_size, sizeof(MoveDest_t));
     handle->cancleReqSemphore = xSemaphoreCreateBinary();
     xTaskCreate(AutoPilotProcess, "AutoPilot", 256, handle, priority, &task_handle);
 }

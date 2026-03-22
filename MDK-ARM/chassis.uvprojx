@@ -2224,6 +2224,16 @@
               <FileType>5</FileType>
               <FilePath>..\Chassis\ForceChassis.h</FilePath>
             </File>
+            <File>
+              <FileName>Action_Config.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Chassis\Action_Config.c</FilePath>
+            </File>
+            <File>
+              <FileName>Action_Config.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Chassis\Action_Config.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

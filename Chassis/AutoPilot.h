@@ -23,7 +23,7 @@ typedef struct AutoPilotReq_t AutoPilotReq_t;
 typedef enum{
     AUTOPILOT_STAGE_IDEL,       //自动驾驶仪断开
     AUTOPILOT_STAGE_RUNNING,    //运动中
-    AUTOPILOT_STAGE_FINISH,       //自动驾驶仪到达终点
+    AUTOPILOT_STAGE_FINISH,     //自动驾驶仪到达终点
     AUTOPILOT_STAGE_ERROR       //自动驾驶仪错误
 }AutopilotState;
 
@@ -31,7 +31,7 @@ typedef enum{
 typedef void(*SetRobotPosCallback_t)(Vector3D pos);
 typedef void(*SetRobotVelCallback_t)(Vector3D vel);
 typedef void(*SetRobotAccCallback_t)(Vector3D acc);
-typedef void(*FinishedCallback_t)(AutopilotState state,AutoPilotReq_t *req,void* user_data);                //执行导航结束回调函数
+typedef void(*FinishedCallback_t)(AutopilotState state,AutoPilotReq_t *req,void* user_data);//执行导航结束回调函数
 
 typedef struct{
     float a;
@@ -50,7 +50,7 @@ typedef struct{
 }MathSolver_t;                  //轨迹优化数学求解器参数
 
 struct AutoPilotReq_t{
-    Vector3D target_pos;      //目标位置        //起/终点地位置/速度/加速度约束
+    Vector3D target_pos;      //目标位置
     Vector3D target_vel;      //速度
     Vector3D target_acc;      //末端加速度
     Vector3D start_pos;       //起点位置
@@ -102,7 +102,7 @@ typedef struct{
  * @param update_dt 导航仪目标更新时间间隔(ms)
  * @return 不返回任何值
  */
-void AutoPilotInit(AutoPilot_t* handle,AutoPilotCallback_t *callBackGroup,uint32_t priority,uint32_t require_queue_size,uint32_t update_dt);    //初始化队列指针，请求数据来源
+void AutoPilotInit(AutoPilot_t *handle, AutoPilotCallback_t *callBackGroup, uint32_t priority, uint32_t require_queue_size, uint32_t update_dt, TaskHandle_t task_handle);    //初始化队列指针，请求数据来源
 
 /**
  * @brief 根据请求的期望位置和时间，规划出x,y,z三条曲线，并在满足加速度，速度限制的条件下尽可能以接近期望运动时间的策略规划曲线

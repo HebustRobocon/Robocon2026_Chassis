@@ -1,9 +1,13 @@
 #include "Task_Init.h"
 #include "JY61.h"
 #include "encoder.h"
+
 #include "comm_stm32_hal_middle.h"
 #include "dataFrame.h"
 #include "comm.h"
+
+#include "AutoPilot.h"
+#include "Pilot_callback.h"
 
 SteeringWheel steeringWheelArray[3];
 Wheel_t wheelArray[3];
@@ -18,6 +22,7 @@ uint8_t usart5_dma_buff[30];
 Remote_Handle_t Remote_Control; //取出遥控器数据
 
 extern SemaphoreHandle_t Jy61_semaphore;
+extern SemaphoreHandle_t Remote_semaphore;
 
 void Remote_Jy61(void *pvParameters);
 void Can_Send(void *pvParameters);
@@ -116,9 +121,35 @@ void Wheel_Task(void *pvParameters)
     }
 }
 
+AutoPilot_t autopilot;
+AutoPilotReq_t req;
+MoveDest_t dest;
+MathSolver_t solver = AUTOPILOT_DEFAULT_SOLVER_PARAM();
+TaskHandle_t AutoAPP_handle;
+AutoPilotCallback_t callbacks = {
+        .setPos_cb = SetRobotPos_Callback,
+        .setVel_cb = SetRobotVel_Callback,
+        .setAcc_cb = SetRobotAcc_Callback
+    };
+
+void AutoPilot_APP(void *pvParameters)
+{
+    TickType_t last_wake_time = xTaskGetTickCount();
+    dest.finish_cb = Finished_Callback;
+    AutoPilotInit(&autopilot, &callbacks, 5, 5, 10, AutoAPP_handle);
+    
+    
+    for(;;)
+    {
+        
+        vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(2));
+    }
+}
+
 int16_t motorCurrentBuf[3] = {0};
 float driveCurrentBuf[3] = {0};
 void Remote_Analysis();
+ChassisMode chassis_mode = REMOTE;
 void Can_Send(void *pvParameters)
 {
 		TickType_t last_wake_time = xTaskGetTickCount();
@@ -147,22 +178,33 @@ void Can_Send(void *pvParameters)
 			
 			Remote_Analysis();
 			/* 单次触发 */
-			if (KEY_RISING_EDGE(Remote_Control.First, Remote_Control.Second, Right_Key_Up))
+			if (KEY_RISING_EDGE(Remote_Control.First, Remote_Control.Second, Left_Switch_Up))
 			{
-					
+				chassis_mode = REMOTE;
 			}
+			if (KEY_RISING_EDGE(Remote_Control.First, Remote_Control.Second, Left_Switch_Down))
+			{
+				chassis_mode = AUTO;
+			}
+      
+      if(chassis_mode == REMOTE)
+      {
+        chassis.exp_vel.x = Remote_Control.Ex;
+        chassis.exp_vel.y = Remote_Control.Ey;
+        chassis.exp_vel.z = Remote_Control.Eomega;
+      }else if(chassis_mode == AUTO)
+      {
+        
+      }
 
-			
 			vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(2));
 		}
 }
 
-ChassisMode chassis_mode = REMOTE;
 PackControl_t recv_pack;
 uint8_t recv_buff[20] = {0};
 float rocker_filter[4] = {0};
 extern JY61_Typedef JY61;
-
 static void Key_Parse(uint32_t key, hw_key_t *out)
 {
     out->Right_Switch_Up     = (key & KEY_Right_Switch_Up)     ? 1 : 0;
@@ -188,14 +230,23 @@ static void Key_Parse(uint32_t key, hw_key_t *out)
 
 void Remote_Analysis()
 {
-	/* 1. 保存上一帧 */
-	Remote_Control.Second = Remote_Control.First;
-	/* 2. 解析当前按键 */
-	Key_Parse(recv_pack.Key, &Remote_Control.First);
-	
-	Remote_Control.Ex = recv_pack.rocker[0] / 1847.0f *MAX_ROBOT_VEL;
-	Remote_Control.Ey = recv_pack.rocker[1] / 1847.0f *MAX_ROBOT_VEL;
-	Remote_Control.Eomega = recv_pack.rocker[2] / 1847.0f * MAX_ROBOT_OMEGA;
+    if(xSemaphoreTake(Remote_semaphore, pdMS_TO_TICKS(200)) == pdTRUE)
+    {
+      /* 1. 保存上一帧 */
+      Remote_Control.Second = Remote_Control.First;
+      /* 2. 解析当前按键 */
+      Key_Parse(recv_pack.Key, &Remote_Control.First);
+
+      Remote_Control.Ex = recv_pack.rocker[0] / 1847.0f *MAX_ROBOT_VEL;
+      Remote_Control.Ey = recv_pack.rocker[1] / 1847.0f *MAX_ROBOT_VEL;
+      Remote_Control.Eomega = recv_pack.rocker[2] / 1847.0f * MAX_ROBOT_OMEGA;
+    }else {
+      Remote_Control.Ex = 0;
+      Remote_Control.Ey = 0;
+      Remote_Control.Eomega = 0;
+
+      memset(&Remote_Control.First, 0, sizeof(Remote_Control.First));
+    }
 }
 
 void Rocker_Filter(PackControl_t *data)
@@ -215,6 +266,9 @@ void MyRecvCallback(uint8_t *src, uint16_t size, void *user_data)
     memcpy(&recv_buff, src, size);
     memcpy(&recv_pack, recv_buff, sizeof(recv_pack));
     Rocker_Filter(&recv_pack);
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    xSemaphoreGiveFromISR(Remote_semaphore, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 CommPackRecv_Cb  recv_cb = MyRecvCallback;
 void Remote_Jy61(void *pvParameters)
@@ -229,6 +283,7 @@ void Remote_Jy61(void *pvParameters)
 				{
 						JY61_Receive(&JY61, usart5_dma_buff, sizeof(JY61));
 				}
+        vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(5));
     }
 }
 

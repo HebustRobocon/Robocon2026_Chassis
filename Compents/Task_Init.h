@@ -31,9 +31,9 @@ typedef struct{
 } hw_key_t;
 
 typedef struct {
-    int16_t Ex;
-    int16_t Ey;
-    int16_t Eomega;
+    float Ex;
+    float Ey;
+    float Eomega;
     hw_key_t First,Second;
 } Remote_Handle_t;
 

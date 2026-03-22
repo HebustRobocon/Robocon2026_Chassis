@@ -38,7 +38,8 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 SemaphoreHandle_t Jy61_semaphore;
-uint16_t _stack[11] = {0};
+SemaphoreHandle_t Remote_semaphore;
+uint16_t _stack[12] = {0};
 extern TaskHandle_t Wheel_Handles[3];
 extern TaskHandle_t Remote_Jy61_Task_Handle;
 extern TaskHandle_t Can_Send_Handle;
@@ -47,6 +48,7 @@ extern TaskHandle_t SendDataPackTask_handle;
 extern TaskHandle_t ReceiveDataPackTask_handle;
 extern TaskHandle_t ACKTimeoutCheckTask_handle;
 extern CommHandle_t *g_comm_handle;
+extern TaskHandle_t AutoAPP_handle;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -126,6 +128,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
+  Remote_semaphore =xSemaphoreCreateBinary();
 	Jy61_semaphore =xSemaphoreCreateBinary();
   /* USER CODE END RTOS_QUEUES */
 
@@ -167,6 +170,7 @@ void StartDefaultTask(void const * argument)
 		_stack[8]=uxTaskGetStackHighWaterMark(ACKTimeoutCheckTask_handle);
 		_stack[9]=uxTaskGetStackHighWaterMark(defaultTaskHandle);
 		_stack[10]=uxTaskGetStackHighWaterMark(g_comm_handle->tx_task_handle);
+    _stack[11]=uxTaskGetStackHighWaterMark(AutoAPP_handle);
     osDelay(50);
   }
   /* USER CODE END StartDefaultTask */
