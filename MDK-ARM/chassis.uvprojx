@@ -2199,6 +2199,16 @@
               <FileType>5</FileType>
               <FilePath>..\Compents\data_poll.h</FilePath>
             </File>
+            <File>
+              <FileName>Action.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Compents\Action.c</FilePath>
+            </File>
+            <File>
+              <FileName>Action.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Compents\Action.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

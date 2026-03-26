@@ -8,6 +8,7 @@
 
 #include "AutoPilot.h"
 #include "Pilot_callback.h"
+#include "Action_Config.h"
 
 SteeringWheel steeringWheelArray[3];
 Wheel_t wheelArray[3];
@@ -73,7 +74,7 @@ void Task_Init(void)
 		xTaskCreate(Wheel_Task, "wheel_task2", 256, &wheelArray[1], 4, &Wheel_Handles[1]);
 		xTaskCreate(Wheel_Task, "wheel_task3", 256, &wheelArray[2], 4, &Wheel_Handles[2]);
 		
-    xTaskCreate(Remote_Jy61, "Remote_Jy61", 200, NULL, 5, &Remote_Jy61_Task_Handle);//遥控器任务
+    xTaskCreate(Remote_Jy61, "Remote_Jy61", 128, NULL, 5, &Remote_Jy61_Task_Handle);//遥控器任务
 		xTaskCreate(Can_Send, "Can_Send", 200, NULL, 4, &Can_Send_Handle);
 		
 }
@@ -137,8 +138,6 @@ void AutoPilot_APP(void *pvParameters)
     TickType_t last_wake_time = xTaskGetTickCount();
     dest.finish_cb = Finished_Callback;
     AutoPilotInit(&autopilot, &callbacks, 5, 5, 10, AutoAPP_handle);
-    
-    
     for(;;)
     {
         
@@ -150,6 +149,7 @@ int16_t motorCurrentBuf[3] = {0};
 float driveCurrentBuf[3] = {0};
 void Remote_Analysis();
 ChassisMode chassis_mode = REMOTE;
+extern uint32_t id1;
 void Can_Send(void *pvParameters)
 {
 		TickType_t last_wake_time = xTaskGetTickCount();
@@ -187,6 +187,11 @@ void Can_Send(void *pvParameters)
 				chassis_mode = AUTO;
 			}
       
+      if(KEY_RISING_EDGE(Remote_Control.First, Remote_Control.Second, Right_Switch_Up))
+      {
+        ActionInterruptSpecificInterruptable(id1);
+      }
+
       if(chassis_mode == REMOTE)
       {
         chassis.exp_vel.x = Remote_Control.Ex;
@@ -273,7 +278,6 @@ void MyRecvCallback(uint8_t *src, uint16_t size, void *user_data)
 CommPackRecv_Cb  recv_cb = MyRecvCallback;
 void Remote_Jy61(void *pvParameters)
 {
-    TickType_t last_wake_time = xTaskGetTickCount();
 		g_comm_handle = Comm_Init(&huart5);
     RemoteCommInit(NULL);
     register_comm_recv_cb(recv_cb, 0x01, &recv_pack);
@@ -283,7 +287,6 @@ void Remote_Jy61(void *pvParameters)
 				{
 						JY61_Receive(&JY61, usart5_dma_buff, sizeof(JY61));
 				}
-        vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(5));
     }
 }
 
