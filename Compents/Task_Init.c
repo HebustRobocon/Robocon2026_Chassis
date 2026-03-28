@@ -9,23 +9,20 @@
 #include "AutoPilot.h"
 #include "Pilot_callback.h"
 #include "Action_Config.h"
+#include "Action.h"
 
 SteeringWheel steeringWheelArray[3];
 Wheel_t wheelArray[3];
 Chassis_t chassis;
 
 TaskHandle_t Wheel_Handles[3];
-TaskHandle_t Remote_Jy61_Task_Handle;
 TaskHandle_t Can_Send_Handle;
 
 uint8_t usart4_dma_buff[30];
 uint8_t usart5_dma_buff[30];
 Remote_Handle_t Remote_Control; //取出遥控器数据
-
-extern SemaphoreHandle_t Jy61_semaphore;
 extern SemaphoreHandle_t Remote_semaphore;
 
-void Remote_Jy61(void *pvParameters);
 void Can_Send(void *pvParameters);
 void Wheel_Task(void *pvParameters);
 
@@ -68,15 +65,13 @@ void Task_Init(void)
 		
     Vector2D barycenter = {0, 0};
     chassis.wheel_err_cb = WheelError_Callback;
-    ChassisInit(&chassis, wheelArray, 3, barycenter, 25.2f, 1.25f, 0.00001f, 2, 400, 4);
+    ChassisInit(&chassis, wheelArray, 3, barycenter, 25.2f, 1.25f, 0.00001f, 2, 600, 4);
     
-		xTaskCreate(Wheel_Task, "wheel_task1", 256, &wheelArray[0], 4, &Wheel_Handles[0]);
-		xTaskCreate(Wheel_Task, "wheel_task2", 256, &wheelArray[1], 4, &Wheel_Handles[1]);
-		xTaskCreate(Wheel_Task, "wheel_task3", 256, &wheelArray[2], 4, &Wheel_Handles[2]);
+		xTaskCreate(Wheel_Task, "wheel_task1", 300, &wheelArray[0], 4, &Wheel_Handles[0]);
+		xTaskCreate(Wheel_Task, "wheel_task2", 300, &wheelArray[1], 4, &Wheel_Handles[1]);
+		xTaskCreate(Wheel_Task, "wheel_task3", 300, &wheelArray[2], 4, &Wheel_Handles[2]);
 		
-    xTaskCreate(Remote_Jy61, "Remote_Jy61", 128, NULL, 5, &Remote_Jy61_Task_Handle);//遥控器任务
-		xTaskCreate(Can_Send, "Can_Send", 200, NULL, 4, &Can_Send_Handle);
-		
+		xTaskCreate(Can_Send, "Can_Send", 300, NULL, 4, &Can_Send_Handle);
 }
 
 void Wheel_Task(void *pvParameters)
@@ -122,6 +117,7 @@ void Wheel_Task(void *pvParameters)
     }
 }
 
+//路径规划任务
 AutoPilot_t autopilot;
 AutoPilotReq_t req;
 MoveDest_t dest;
@@ -144,72 +140,15 @@ void AutoPilot_APP(void *pvParameters)
         vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(2));
     }
 }
-
+//can发送和遥控器任务
 int16_t motorCurrentBuf[3] = {0};
 float driveCurrentBuf[3] = {0};
-void Remote_Analysis();
 ChassisMode chassis_mode = REMOTE;
 extern uint32_t id1;
-void Can_Send(void *pvParameters)
-{
-		TickType_t last_wake_time = xTaskGetTickCount();
-		
-		steeringWheelArray[0].DriveMotor.hcan = &hcan1;
-		steeringWheelArray[0].DriveMotor.motor_id = 0x01;
-		steeringWheelArray[1].DriveMotor.hcan = &hcan1;
-		steeringWheelArray[1].DriveMotor.motor_id = 0x02;
-    steeringWheelArray[2].DriveMotor.hcan = &hcan1;
-		steeringWheelArray[2].DriveMotor.motor_id = 0x03;
-		for(;;)
-		{
-			motorCurrentBuf[0] = steeringWheelArray[0].Steering_Vel_PID.pid_out;
-			motorCurrentBuf[1] = steeringWheelArray[1].Steering_Vel_PID.pid_out;
-			motorCurrentBuf[2] = steeringWheelArray[2].Steering_Vel_PID.pid_out;
-			
-			MotorSend(&hcan2, 0x200, motorCurrentBuf);
-			
-			driveCurrentBuf[0] = steeringWheelArray[0].Driver_Vel_PID.pid_out;
-			driveCurrentBuf[1] = steeringWheelArray[1].Driver_Vel_PID.pid_out;
-			driveCurrentBuf[2] = steeringWheelArray[2].Driver_Vel_PID.pid_out;
-			
-      VESC_SetCurrent(&steeringWheelArray[0].DriveMotor, driveCurrentBuf[0]);
-      VESC_SetCurrent(&steeringWheelArray[1].DriveMotor, driveCurrentBuf[1]);
-      VESC_SetCurrent(&steeringWheelArray[2].DriveMotor, driveCurrentBuf[2]);
-			
-			Remote_Analysis();
-			/* 单次触发 */
-			if (KEY_RISING_EDGE(Remote_Control.First, Remote_Control.Second, Left_Switch_Up))
-			{
-				chassis_mode = REMOTE;
-			}
-			if (KEY_RISING_EDGE(Remote_Control.First, Remote_Control.Second, Left_Switch_Down))
-			{
-				chassis_mode = AUTO;
-			}
-      
-      if(KEY_RISING_EDGE(Remote_Control.First, Remote_Control.Second, Right_Switch_Up))
-      {
-        ActionInterruptSpecificInterruptable(id1);
-      }
-
-      if(chassis_mode == REMOTE)
-      {
-        chassis.exp_vel.x = Remote_Control.Ex;
-        chassis.exp_vel.y = Remote_Control.Ey;
-        chassis.exp_vel.z = Remote_Control.Eomega;
-      }else if(chassis_mode == AUTO)
-      {
-        
-      }
-
-			vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(2));
-		}
-}
 
 PackControl_t recv_pack;
 uint8_t recv_buff[20] = {0};
 float rocker_filter[4] = {0};
-extern JY61_Typedef JY61;
 static void Key_Parse(uint32_t key, hw_key_t *out)
 {
     out->Right_Switch_Up     = (key & KEY_Right_Switch_Up)     ? 1 : 0;
@@ -276,20 +215,62 @@ void MyRecvCallback(uint8_t *src, uint16_t size, void *user_data)
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 CommPackRecv_Cb  recv_cb = MyRecvCallback;
-void Remote_Jy61(void *pvParameters)
+
+void Can_Send(void *pvParameters)
 {
+		TickType_t last_wake_time = xTaskGetTickCount();
+		
+		steeringWheelArray[0].DriveMotor.hcan = &hcan1;
+		steeringWheelArray[0].DriveMotor.motor_id = 0x01;
+		steeringWheelArray[1].DriveMotor.hcan = &hcan1;
+		steeringWheelArray[1].DriveMotor.motor_id = 0x02;
+    steeringWheelArray[2].DriveMotor.hcan = &hcan1;
+		steeringWheelArray[2].DriveMotor.motor_id = 0x03;
+	
 		g_comm_handle = Comm_Init(&huart5);
     RemoteCommInit(NULL);
     register_comm_recv_cb(recv_cb, 0x01, &recv_pack);
-    for(;;)
-    {
-				if(xSemaphoreTake(Jy61_semaphore, pdMS_TO_TICKS(200)) == pdTRUE)
-				{
-						JY61_Receive(&JY61, usart5_dma_buff, sizeof(JY61));
-				}
-    }
-}
+		for(;;)
+		{
+			motorCurrentBuf[0] = steeringWheelArray[0].Steering_Vel_PID.pid_out;
+			motorCurrentBuf[1] = steeringWheelArray[1].Steering_Vel_PID.pid_out;
+			motorCurrentBuf[2] = steeringWheelArray[2].Steering_Vel_PID.pid_out;
+			
+			MotorSend(&hcan2, 0x200, motorCurrentBuf);
+			
+			driveCurrentBuf[0] = steeringWheelArray[0].Driver_Vel_PID.pid_out;
+			driveCurrentBuf[1] = steeringWheelArray[1].Driver_Vel_PID.pid_out;
+			driveCurrentBuf[2] = steeringWheelArray[2].Driver_Vel_PID.pid_out;
+			
+      VESC_SetCurrent(&steeringWheelArray[0].DriveMotor, driveCurrentBuf[0]);
+      VESC_SetCurrent(&steeringWheelArray[1].DriveMotor, driveCurrentBuf[1]);
+      VESC_SetCurrent(&steeringWheelArray[2].DriveMotor, driveCurrentBuf[2]);
+			
+			Remote_Analysis();
+			/* 单次触发 */
+			if (Remote_Control.First.Left_Key_Up == 1 && Remote_Control.Second.Left_Key_Up  == 0)
+			{
+				chassis_mode = REMOTE;
+			}
+			if (Remote_Control.First.Left_Key_Down == 1 && Remote_Control.Second.Left_Key_Down  == 0)
+			{
+				chassis_mode = AUTO;
+			}
+      
+      if(chassis_mode == REMOTE)
+      {
+        chassis.exp_vel.x = Remote_Control.Ex;
+        chassis.exp_vel.y = Remote_Control.Ey;
+        chassis.exp_vel.z = Remote_Control.Eomega;
+      }else if(chassis_mode == AUTO)
+      {
+        
+      }
 
+			vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(2));
+		}
+}
+//中断
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
 	uint8_t Recv[8] = {0};
@@ -328,7 +309,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
 		HAL_UART_DMAStop(&huart5);
 		Comm_UART_IRQ_Handle(g_comm_handle, &huart5, usart5_dma_buff,size);
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart5, usart5_dma_buff,sizeof(usart5_dma_buff));
-   		__HAL_DMA_DISABLE_IT(huart5.hdmarx, DMA_IT_HT);
+   	__HAL_DMA_DISABLE_IT(huart5.hdmarx, DMA_IT_HT);
 	}
 }
 

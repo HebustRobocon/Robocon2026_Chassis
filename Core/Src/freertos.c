@@ -37,11 +37,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-SemaphoreHandle_t Jy61_semaphore;
 SemaphoreHandle_t Remote_semaphore;
 uint16_t _stack[12] = {0};
 extern TaskHandle_t Wheel_Handles[3];
-extern TaskHandle_t Remote_Jy61_Task_Handle;
 extern TaskHandle_t Can_Send_Handle;
 extern TaskHandle_t task_handle;
 extern TaskHandle_t SendDataPackTask_handle;
@@ -49,6 +47,8 @@ extern TaskHandle_t ReceiveDataPackTask_handle;
 extern TaskHandle_t ACKTimeoutCheckTask_handle;
 extern CommHandle_t *g_comm_handle;
 extern TaskHandle_t AutoAPP_handle;
+extern TaskHandle_t TestTask_handle;
+extern TaskHandle_t ActionDealTask_handle;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -129,12 +129,11 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   Remote_semaphore =xSemaphoreCreateBinary();
-	Jy61_semaphore =xSemaphoreCreateBinary();
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 256);
+  osThreadDef(defaultTask, StartDefaultTask, 5, 0, 256);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -153,8 +152,7 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void const * argument)
 {
   /* init code for USB_DEVICE */
-  MX_USB_DEVICE_Init();
-	Task_Init();
+
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
   for(;;)
@@ -162,16 +160,16 @@ void StartDefaultTask(void const * argument)
 		_stack[0]=uxTaskGetStackHighWaterMark(Wheel_Handles[0]);
 		_stack[1]=uxTaskGetStackHighWaterMark(Wheel_Handles[1]);
 		_stack[2]=uxTaskGetStackHighWaterMark(Wheel_Handles[2]);
-		_stack[3]=uxTaskGetStackHighWaterMark(Remote_Jy61_Task_Handle);
-		_stack[4]=uxTaskGetStackHighWaterMark(Can_Send_Handle);
-		_stack[5]=uxTaskGetStackHighWaterMark(task_handle);
-		_stack[6]=uxTaskGetStackHighWaterMark(SendDataPackTask_handle);
-		_stack[7]=uxTaskGetStackHighWaterMark(ReceiveDataPackTask_handle);
-		_stack[8]=uxTaskGetStackHighWaterMark(ACKTimeoutCheckTask_handle);
-		_stack[9]=uxTaskGetStackHighWaterMark(defaultTaskHandle);
-		_stack[10]=uxTaskGetStackHighWaterMark(g_comm_handle->tx_task_handle);
-    _stack[11]=uxTaskGetStackHighWaterMark(AutoAPP_handle);
-    osDelay(50);
+		_stack[3]=uxTaskGetStackHighWaterMark(Can_Send_Handle);
+		_stack[4]=uxTaskGetStackHighWaterMark(task_handle);
+		_stack[5]=uxTaskGetStackHighWaterMark(SendDataPackTask_handle);
+		_stack[6]=uxTaskGetStackHighWaterMark(ReceiveDataPackTask_handle);
+		_stack[7]=uxTaskGetStackHighWaterMark(ACKTimeoutCheckTask_handle);
+		_stack[8]=uxTaskGetStackHighWaterMark(defaultTaskHandle);
+		_stack[9]=uxTaskGetStackHighWaterMark(g_comm_handle->tx_task_handle);
+    _stack[10]=uxTaskGetStackHighWaterMark(AutoAPP_handle);
+		_stack[11]=uxTaskGetStackHighWaterMark(ActionDealTask_handle);
+    osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */
 }

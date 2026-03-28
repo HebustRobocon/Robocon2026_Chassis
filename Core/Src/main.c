@@ -30,6 +30,7 @@
 #include "RMLibHead.h"
 #include "CANDRive.h"
 #include "encoder.h"
+#include "Task_Init.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -103,12 +104,14 @@ int main(void)
   MX_UART4_Init();
   MX_UART5_Init();
   /* USER CODE BEGIN 2 */
+	MX_USB_DEVICE_Init();
 	CanFilter_Init(&hcan1);
 	CanFilter_Init(&hcan2);
 	HAL_CAN_Start(&hcan1); 
 	HAL_CAN_Start(&hcan2);
 	HAL_CAN_ActivateNotification(&hcan1,CAN_IT_RX_FIFO0_MSG_PENDING);
 	HAL_CAN_ActivateNotification(&hcan2,CAN_IT_RX_FIFO1_MSG_PENDING);
+	Task_Init();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */

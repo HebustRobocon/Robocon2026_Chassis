@@ -19,7 +19,7 @@ void ActionManagerInit(void)
     action_manager.next_action_id = 1;
 
     action_manager.mutex = xSemaphoreCreateMutex();//初始化互斥锁
-    xTaskCreate(ActionDealTask, "ActionDealTask", 256, NULL, 3, &ActionDealTask_handle);//创建动作处理任务
+    xTaskCreate(ActionDealTask, "ActionDealTask", 256, NULL, 4, &ActionDealTask_handle);//创建动作处理任务
 }
 
 void ActionDealTask(void *pvParameters)
@@ -48,7 +48,7 @@ void ActionDealTask(void *pvParameters)
                     action_manager.actions[idx] = action;//添加到动作数组
                     action_manager.action_count++;
 
-                    xTaskCreate(ActionExecuteTask, "ActionTask", 128, action, 2, &action->task_handle);// 创建动作执行任务
+                    xTaskCreate(ActionExecuteTask, "ActionTask", 128, action, 4, &action->task_handle);// 创建动作执行任务
                 }
             }
             xSemaphoreGive(action_manager.mutex);
@@ -71,7 +71,7 @@ void ActionExecuteTask(void *pvParameters)
             }
         }
         xSemaphoreGive(action_manager.mutex);
-        
+				vPortFree(action);// 释放内存
         vTaskDelete(NULL);
         return;
     }
@@ -87,7 +87,8 @@ void ActionExecuteTask(void *pvParameters)
     if (action->complete) {
         action->complete(action->user_data);
     }
-    xSemaphoreTake(action_manager.mutex, portMAX_DELAY);/// 从动作数组中移除
+		
+    xSemaphoreTake(action_manager.mutex, portMAX_DELAY);//从动作数组中移除
     for (int i = 0; i < 10; i++) {
         if (action_manager.actions[i] == action) {
             action_manager.actions[i] = NULL;
@@ -96,6 +97,7 @@ void ActionExecuteTask(void *pvParameters)
         }
     }
     xSemaphoreGive(action_manager.mutex);
+    vPortFree(action);// 释放内存
     vTaskDelete(NULL);// 任务完成
 }
 

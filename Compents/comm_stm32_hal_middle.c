@@ -131,9 +131,9 @@ CommHandle_t* Comm_Init(UART_HandleTypeDef *huart)
     BaseType_t tx_task_result = xTaskCreate(
         Comm_TxTask,                    // 任务函数
         "CommTx",                       // 任务名称
-        512,                            // 堆栈大小（字）
+        300,                            // 堆栈大小（字）
         &comm_instance,                 // 任务参数
-        6,                              // 任务优先级
+        5,                              // 任务优先级
         &comm_instance.tx_task_handle   // 任务句柄
     );
 

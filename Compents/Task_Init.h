@@ -5,6 +5,7 @@
 #include "ForceChassis.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "usb_device.h"
 
 #define MAX_ROBOT_VEL 5.0f // m/s
 #define MAX_ROBOT_OMEGA ANGLE2RAD(30.0f)
