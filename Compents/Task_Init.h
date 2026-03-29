@@ -7,7 +7,7 @@
 #include "task.h"
 #include "usb_device.h"
 
-#define MAX_ROBOT_VEL 5.0f // m/s
+#define MAX_ROBOT_VEL 4.0f // m/s
 #define MAX_ROBOT_OMEGA ANGLE2RAD(30.0f)
 
 void Task_Init(void);
@@ -39,12 +39,9 @@ typedef struct {
 } Remote_Handle_t;
 
 typedef enum{
-    STP,
     STOP,
     REMOTE,
     AUTO,
 }ChassisMode;
-
-#define KEY_RISING_EDGE(cur, last, field)  ((cur.field == 1) && (last.field == 0))
 
 #endif

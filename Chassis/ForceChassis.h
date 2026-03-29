@@ -12,7 +12,6 @@ typedef enum{
     WHEEL_ERROR         //轮子异常，影响正常使用，一般尝试复位指令
 }WheelState;
 
-
 typedef struct Wheel_t Wheel_t;
 typedef struct Chassis_t Chassis_t;
 
@@ -51,9 +50,11 @@ struct Chassis_t{
     float dead_zone;        //速度死区，防止短时间舵轮期望角度发生剧变
 
     //输入/输出部分
-    Vector3D exp_vel;           //底盘期望
+    Vector3D exp_vel;           //底盘期望最终速度
+    Vector3D exp_pilot_vel;
     Vector3D exp_pos;           //底盘期望位置
     Vector3D exp_acc;           //底盘期望加速度
+		
     Vector3D cur_pos;           //底盘实际位置
     Vector3D cur_vel;           //底盘实际速度
     

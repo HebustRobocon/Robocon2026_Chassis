@@ -21,15 +21,15 @@ void WorldToBodyFrame(Vector3D world, Vector3D *body, float yaw)
 void SetRobotPos_Callback(Vector3D pos)
 {
     Vector3D relative_pos;
-    relative_pos.x = pos.x - chassis.cur_pos.x;
-    relative_pos.y = pos.y - chassis.cur_pos.y;
+    relative_pos.x = Pos_Vel_Kp * (pos.x - chassis.cur_pos.x);
+    relative_pos.y = Pos_Vel_Kp * (pos.y - chassis.cur_pos.y);
     relative_pos.z = pos.z;
     WorldToBodyFrame(relative_pos, &chassis.exp_pos, JY61.Angle.Yaw);
 }
 
 void SetRobotVel_Callback(Vector3D vel)
 {
-    WorldToBodyFrame(vel, &chassis.exp_vel, JY61.Angle.Yaw);
+    WorldToBodyFrame(vel, &chassis.exp_pilot_vel, JY61.Angle.Yaw);
 }
 
 void SetRobotAcc_Callback(Vector3D acc)

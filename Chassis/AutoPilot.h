@@ -61,7 +61,7 @@ struct AutoPilotReq_t{
 
     FinishedCallback_t finish_cb;   //回调函数参数
     void* user_data;                //回调函数参数
-};                    //运动目标规结构体
+};//运动目标规结构体
 
 typedef struct{
     PathLine_t x_line;  //归一化后的x坐标关于时间的曲线

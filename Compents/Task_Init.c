@@ -127,7 +127,7 @@ AutoPilotCallback_t callbacks = {
         .setPos_cb = SetRobotPos_Callback,
         .setVel_cb = SetRobotVel_Callback,
         .setAcc_cb = SetRobotAcc_Callback
-    };
+};
 
 void AutoPilot_APP(void *pvParameters)
 {
@@ -230,22 +230,9 @@ void Can_Send(void *pvParameters)
 		g_comm_handle = Comm_Init(&huart5);
     RemoteCommInit(NULL);
     register_comm_recv_cb(recv_cb, 0x01, &recv_pack);
+	
 		for(;;)
 		{
-			motorCurrentBuf[0] = steeringWheelArray[0].Steering_Vel_PID.pid_out;
-			motorCurrentBuf[1] = steeringWheelArray[1].Steering_Vel_PID.pid_out;
-			motorCurrentBuf[2] = steeringWheelArray[2].Steering_Vel_PID.pid_out;
-			
-			MotorSend(&hcan2, 0x200, motorCurrentBuf);
-			
-			driveCurrentBuf[0] = steeringWheelArray[0].Driver_Vel_PID.pid_out;
-			driveCurrentBuf[1] = steeringWheelArray[1].Driver_Vel_PID.pid_out;
-			driveCurrentBuf[2] = steeringWheelArray[2].Driver_Vel_PID.pid_out;
-			
-      VESC_SetCurrent(&steeringWheelArray[0].DriveMotor, driveCurrentBuf[0]);
-      VESC_SetCurrent(&steeringWheelArray[1].DriveMotor, driveCurrentBuf[1]);
-      VESC_SetCurrent(&steeringWheelArray[2].DriveMotor, driveCurrentBuf[2]);
-			
 			Remote_Analysis();
 			/* 单次触发 */
 			if (Remote_Control.First.Left_Key_Up == 1 && Remote_Control.Second.Left_Key_Up  == 0)
@@ -257,19 +244,41 @@ void Can_Send(void *pvParameters)
 				chassis_mode = AUTO;
 			}
       
+			motorCurrentBuf[0] = steeringWheelArray[0].Steering_Vel_PID.pid_out;
+			motorCurrentBuf[1] = steeringWheelArray[1].Steering_Vel_PID.pid_out;
+			motorCurrentBuf[2] = steeringWheelArray[2].Steering_Vel_PID.pid_out;
+
+			MotorSend(&hcan2, 0x200, motorCurrentBuf);
+			
+			driveCurrentBuf[0] = steeringWheelArray[0].Driver_Vel_PID.pid_out;
+			driveCurrentBuf[1] = steeringWheelArray[1].Driver_Vel_PID.pid_out;
+			driveCurrentBuf[2] = steeringWheelArray[2].Driver_Vel_PID.pid_out;
+			
       if(chassis_mode == REMOTE)
       {
         chassis.exp_vel.x = Remote_Control.Ex;
         chassis.exp_vel.y = Remote_Control.Ey;
         chassis.exp_vel.z = Remote_Control.Eomega;
+				
+				VESC_SetCurrent(&steeringWheelArray[0].DriveMotor, driveCurrentBuf[0]);
+				VESC_SetCurrent(&steeringWheelArray[1].DriveMotor, driveCurrentBuf[1]);
+				VESC_SetCurrent(&steeringWheelArray[2].DriveMotor, driveCurrentBuf[2]);
+				
       }else if(chassis_mode == AUTO)
       {
-        
+        chassis.exp_vel.x = chassis.exp_pilot_vel.x + chassis.exp_pos.x;
+        chassis.exp_vel.y = chassis.exp_pilot_vel.y + chassis.exp_pos.y;
+        chassis.exp_vel.z = chassis.exp_pilot_vel.z + chassis.exp_pos.z;
+				
+				VESC_SetCurrent(&steeringWheelArray[0].DriveMotor, driveCurrentBuf[0] + steeringWheelArray[0].expextForce);
+				VESC_SetCurrent(&steeringWheelArray[1].DriveMotor, driveCurrentBuf[1] + steeringWheelArray[0].expextForce);
+				VESC_SetCurrent(&steeringWheelArray[2].DriveMotor, driveCurrentBuf[2] + steeringWheelArray[0].expextForce);
       }
 
 			vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(2));
 		}
 }
+
 //中断
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {

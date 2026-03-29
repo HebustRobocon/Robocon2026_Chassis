@@ -4,6 +4,8 @@
 #include "Vector.h"
 #include "AutoPilot.h"
 
+#define Pos_Vel_Kp 0.5
+
 void SetRobotPos_Callback(Vector3D pos);
 void SetRobotVel_Callback(Vector3D vel);
 void SetRobotAcc_Callback(Vector3D acc);
