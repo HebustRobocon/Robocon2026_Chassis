@@ -1,7 +1,6 @@
 build-idx:
   generated-by: csolution version 2.13.0+p3-g40b6564e
   csolution: chassis.csolution.yml
-  cbuild-run: out/chassis+chassis.cbuild-run.yml
   tmpdir: tmp
   cprojects:
     - cproject: chassis.cproject.yml
@@ -10,9 +9,10 @@ build-idx:
       project: chassis
       configuration: +chassis
       messages:
+        errors:
+          - file 'D:/Keil_Project_Trae_CN/Robocon2026_Chassis/MDK-ARM/chassis_chassis.sct' was not found
         info:
           - chassis.cbuild-pack.yml - file is already up-to-date
-          - chassis+chassis.cbuild-run.yml - file is already up-to-date
           - chassis+chassis.cbuild.yml - file is already up-to-date
       packs-unused:
         - pack: ARM::CMSIS-DSP@1.16.2

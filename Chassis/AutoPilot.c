@@ -203,3 +203,8 @@ void AutoPilotInit(AutoPilot_t *handle, AutoPilotCallback_t *callBackGroup, uint
     handle->cancleReqSemphore = xSemaphoreCreateBinary();
     xTaskCreate(AutoPilotProcess, "AutoPilot", 256, handle, priority, &task_handle);
 }
+
+void AutoPilotSendTrajectoryToPilot(AutoPilot_t *handle, MoveDest_t *dest)
+{
+    xQueueSend(handle->runReqQueue, dest, 0);
+}
