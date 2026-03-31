@@ -134,6 +134,31 @@ void AutoPilot_APP(void *pvParameters)
     TickType_t last_wake_time = xTaskGetTickCount();
     dest.finish_cb = Finished_Callback;
     AutoPilotInit(&autopilot, &callbacks, 5, 5, 10, AutoAPP_handle);
+		
+	  // 设置起点状态
+		req.start_pos = (Vector3D){0.0f, 0.0f, 0.0f};  // 起点位置
+		req.start_vel = (Vector3D){0.0f, 0.0f, 0.0f};  // 起点速度
+		req.start_acc = (Vector3D){0.0f, 0.0f, 0.0f};  // 起点加速度
+		
+		// 设置终点状态
+		req.target_pos = (Vector3D){0.0f, 0.0f, 0.0f};  // 目标位置
+		req.target_vel = (Vector3D){0.0f, 0.0f, 0.0f};  // 目标速度
+		req.target_acc = (Vector3D){0.0f, 0.0f, 0.0f};  // 目标加速度
+		
+		// 设置运行时间和回调
+		req.runTime = 3.0f;  // 期望运行时间
+		req.finish_cb = Finished_Callback;  // 完成回调
+		req.user_data = NULL;  // 用户数据
+		// 规划轨迹
+		float actual_time = AutoPilotTrajectoryPlane(&req, &dest, 
+																							0.5f,  // 速度限制
+																							0.2f,  // 加速度限制
+																							0.5f,  // 角速度限制
+																							0.2f,  // 角加速度限制
+																							req.runTime,
+																							&solver);
+		// 发送轨迹到自动驾驶系统
+		AutoPilotSendTrajectoryToPilot(&autopilot, &dest);
     for(;;)
     {
         
