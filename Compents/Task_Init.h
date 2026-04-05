@@ -11,7 +11,6 @@
 #define MAX_ROBOT_OMEGA ANGLE2RAD(30.0f)
 
 void Task_Init(void);
-void Wheel_Task(void *pvParameters);
 
 typedef struct{
 	uint8_t Left_Key_Up;         

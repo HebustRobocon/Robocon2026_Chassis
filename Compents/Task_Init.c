@@ -17,14 +17,16 @@ Chassis_t chassis;
 
 TaskHandle_t Wheel_Handles[3];
 TaskHandle_t Can_Send_Handle;
+TaskHandle_t Remote_Analysis_Handle;
 
 uint8_t usart4_dma_buff[30];
-uint8_t usart5_dma_buff[30];
+uint8_t usart5_dma_buff[60];
 Remote_Handle_t Remote_Control; //取出遥控器数据
 extern SemaphoreHandle_t Remote_semaphore;
 
 void Can_Send(void *pvParameters);
 void Wheel_Task(void *pvParameters);
+void Remote_Analysis_Task(void *pvParameters);
 
 void Task_Init(void)
 {
@@ -35,7 +37,7 @@ void Task_Init(void)
 		__HAL_UART_ENABLE_IT(&huart5, UART_IT_IDLE);
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart5, usart5_dma_buff, sizeof(usart5_dma_buff));
 		__HAL_DMA_DISABLE_IT(huart5.hdmarx, DMA_IT_HT);
-	
+    
     steeringWheelArray[0].Key_GPIO_Port = GPIOE;
     steeringWheelArray[0].Key_GPIO_Pin = GPIO_PIN_9;
     steeringWheelArray[1].Key_GPIO_Port = GPIOA;
@@ -72,8 +74,10 @@ void Task_Init(void)
 		xTaskCreate(Wheel_Task, "wheel_task3", 300, &wheelArray[2], 4, &Wheel_Handles[2]);
 		
 		xTaskCreate(Can_Send, "Can_Send", 300, NULL, 4, &Can_Send_Handle);
+		
+		xTaskCreate(Remote_Analysis_Task, "Remote_Analysis_Task", 128, NULL, 4, &Remote_Analysis_Handle);
 }
-
+uint32_t data_flag = 0;
 void Wheel_Task(void *pvParameters)
 {
     TickType_t last_wake_time = xTaskGetTickCount();
@@ -93,9 +97,9 @@ void Wheel_Task(void *pvParameters)
     swheel->Steering_Dir_PID.limit = 10.0f;
     swheel->Steering_Dir_PID.output_limit = 10000.0f;
 
-    swheel->Driver_Vel_PID.Kp = 0.6f;
-    swheel->Driver_Vel_PID.Ki = 0.003f;
-    swheel->Driver_Vel_PID.Kd = 2.0f;
+    swheel->Driver_Vel_PID.Kp = 1.2f;
+    swheel->Driver_Vel_PID.Ki = 0.0007f;
+    swheel->Driver_Vel_PID.Kd = 4.0f;
     swheel->Driver_Vel_PID.limit = 10000.0f;
     swheel->Driver_Vel_PID.output_limit = 50.0f;
 
@@ -107,69 +111,20 @@ void Wheel_Task(void *pvParameters)
 		
     for(;;)
     {
-				UpdateAngle(swheel);
-				PID_Control2(swheel->currentDirection, swheel->putoutDirection, &swheel->Steering_Dir_PID);//角度环
-				PID_Control2(swheel->SteeringMotor.Speed, swheel->Steering_Dir_PID.pid_out, &swheel->Steering_Vel_PID);//速度环
-
-				PID_Control_d(swheel->DriveMotor.epm / 20.0f, swheel->putoutVelocity / wheel_radius / (2.0f * PI) * 60.0f, &swheel->Driver_Vel_PID);
-
-				vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(2));
+			UpdateAngle(swheel);
+			PID_Control2(swheel->currentDirection, swheel->putoutDirection, &swheel->Steering_Dir_PID);//角度环
+			PID_Control2(swheel->SteeringMotor.Speed, swheel->Steering_Dir_PID.pid_out, &swheel->Steering_Vel_PID);//速度环
+			
+			PID_Control_d(swheel->DriveMotor.epm / 20.0f, swheel->putoutVelocity / wheel_radius / (2.0f * PI) * 60.0f, &swheel->Driver_Vel_PID);
+				
+			vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(2));
     }
 }
 
-//路径规划任务
-AutoPilot_t autopilot;
-AutoPilotReq_t req;
-MoveDest_t dest;
-MathSolver_t solver = AUTOPILOT_DEFAULT_SOLVER_PARAM();
-TaskHandle_t AutoAPP_handle;
-AutoPilotCallback_t callbacks = {
-        .setPos_cb = SetRobotPos_Callback,
-        .setVel_cb = SetRobotVel_Callback,
-        .setAcc_cb = SetRobotAcc_Callback
-};
-
-void AutoPilot_APP(void *pvParameters)
-{
-    TickType_t last_wake_time = xTaskGetTickCount();
-    dest.finish_cb = Finished_Callback;
-    AutoPilotInit(&autopilot, &callbacks, 5, 5, 10, AutoAPP_handle);
-		
-	  // 设置起点状态
-		req.start_pos = (Vector3D){0.0f, 0.0f, 0.0f};  // 起点位置
-		req.start_vel = (Vector3D){0.0f, 0.0f, 0.0f};  // 起点速度
-		req.start_acc = (Vector3D){0.0f, 0.0f, 0.0f};  // 起点加速度
-		
-		// 设置终点状态
-		req.target_pos = (Vector3D){0.0f, 0.0f, 0.0f};  // 目标位置
-		req.target_vel = (Vector3D){0.0f, 0.0f, 0.0f};  // 目标速度
-		req.target_acc = (Vector3D){0.0f, 0.0f, 0.0f};  // 目标加速度
-		
-		// 设置运行时间和回调
-		req.runTime = 3.0f;  // 期望运行时间
-		req.finish_cb = Finished_Callback;  // 完成回调
-		req.user_data = NULL;  // 用户数据
-		// 规划轨迹
-		float actual_time = AutoPilotTrajectoryPlane(&req, &dest, 
-																							0.5f,  // 速度限制
-																							0.2f,  // 加速度限制
-																							0.5f,  // 角速度限制
-																							0.2f,  // 角加速度限制
-																							req.runTime,
-																							&solver);
-		// 发送轨迹到自动驾驶系统
-		AutoPilotSendTrajectoryToPilot(&autopilot, &dest);
-    for(;;)
-    {
-        
-        vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(2));
-    }
-}
 //can发送和遥控器任务
 int16_t motorCurrentBuf[3] = {0};
 float driveCurrentBuf[3] = {0};
 ChassisMode chassis_mode = REMOTE;
-extern uint32_t id1;
 
 PackControl_t recv_pack;
 uint8_t recv_buff[20] = {0};
@@ -218,26 +173,11 @@ void Remote_Analysis()
     }
 }
 
-void Rocker_Filter(PackControl_t *data)
-{
-    float alpha = 0.6f;
-
-    for(int i = 0; i < 4; i++)
-    {
-        rocker_filter[i] = alpha * data->rocker[i] +
-                          (1.0f - alpha) * rocker_filter[i];
-
-        data->rocker[i] = rocker_filter[i];
-    }
-}
 void MyRecvCallback(uint8_t *src, uint16_t size, void *user_data)
 {
     memcpy(&recv_buff, src, size);
     memcpy(&recv_pack, recv_buff, sizeof(recv_pack));
-    Rocker_Filter(&recv_pack);
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    xSemaphoreGiveFromISR(Remote_semaphore, &xHigherPriorityTaskWoken);
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    xSemaphoreGive(Remote_semaphore);
 }
 CommPackRecv_Cb  recv_cb = MyRecvCallback;
 
@@ -258,17 +198,10 @@ void Can_Send(void *pvParameters)
 	
 		for(;;)
 		{
-			Remote_Analysis();
-			/* 单次触发 */
-			if (Remote_Control.First.Left_Key_Up == 1 && Remote_Control.Second.Left_Key_Up  == 0)
-			{
-				chassis_mode = REMOTE;
-			}
-			if (Remote_Control.First.Left_Key_Down == 1 && Remote_Control.Second.Left_Key_Down  == 0)
-			{
-				chassis_mode = AUTO;
-			}
-      
+			chassis.exp_vel.x = Remote_Control.Ex;
+			chassis.exp_vel.y = Remote_Control.Ey;
+			chassis.exp_vel.z = Remote_Control.Eomega;
+			
 			motorCurrentBuf[0] = steeringWheelArray[0].Steering_Vel_PID.pid_out;
 			motorCurrentBuf[1] = steeringWheelArray[1].Steering_Vel_PID.pid_out;
 			motorCurrentBuf[2] = steeringWheelArray[2].Steering_Vel_PID.pid_out;
@@ -279,28 +212,19 @@ void Can_Send(void *pvParameters)
 			driveCurrentBuf[1] = steeringWheelArray[1].Driver_Vel_PID.pid_out;
 			driveCurrentBuf[2] = steeringWheelArray[2].Driver_Vel_PID.pid_out;
 			
-      if(chassis_mode == REMOTE)
-      {
-        chassis.exp_vel.x = Remote_Control.Ex;
-        chassis.exp_vel.y = Remote_Control.Ey;
-        chassis.exp_vel.z = Remote_Control.Eomega;
-				
-				VESC_SetCurrent(&steeringWheelArray[0].DriveMotor, driveCurrentBuf[0]);
-				VESC_SetCurrent(&steeringWheelArray[1].DriveMotor, driveCurrentBuf[1]);
-				VESC_SetCurrent(&steeringWheelArray[2].DriveMotor, driveCurrentBuf[2]);
-				
-      }else if(chassis_mode == AUTO)
-      {
-        chassis.exp_vel.x = chassis.exp_pilot_vel.x + chassis.exp_pos.x;
-        chassis.exp_vel.y = chassis.exp_pilot_vel.y + chassis.exp_pos.y;
-        chassis.exp_vel.z = chassis.exp_pilot_vel.z + chassis.exp_pos.z;
-				
-				VESC_SetCurrent(&steeringWheelArray[0].DriveMotor, driveCurrentBuf[0] + steeringWheelArray[0].expextForce);
-				VESC_SetCurrent(&steeringWheelArray[1].DriveMotor, driveCurrentBuf[1] + steeringWheelArray[0].expextForce);
-				VESC_SetCurrent(&steeringWheelArray[2].DriveMotor, driveCurrentBuf[2] + steeringWheelArray[0].expextForce);
-      }
+			VESC_SetCurrent(&steeringWheelArray[0].DriveMotor, driveCurrentBuf[0]);
+			VESC_SetCurrent(&steeringWheelArray[1].DriveMotor, driveCurrentBuf[1]);
+			VESC_SetCurrent(&steeringWheelArray[2].DriveMotor, driveCurrentBuf[2]);
 
 			vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(2));
+		}
+}
+
+void Remote_Analysis_Task(void *pvParameters)
+{
+		while(1)
+		{
+			Remote_Analysis();
 		}
 }
 

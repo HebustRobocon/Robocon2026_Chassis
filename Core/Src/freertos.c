@@ -46,9 +46,7 @@ extern TaskHandle_t SendDataPackTask_handle;
 extern TaskHandle_t ReceiveDataPackTask_handle;
 extern TaskHandle_t ACKTimeoutCheckTask_handle;
 extern CommHandle_t *g_comm_handle;
-extern TaskHandle_t AutoAPP_handle;
-extern TaskHandle_t TestTask_handle;
-extern TaskHandle_t ActionDealTask_handle;
+extern TaskHandle_t Remote_Analysis_Handle;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -133,7 +131,7 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, 5, 0, 256);
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 256);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -167,8 +165,7 @@ void StartDefaultTask(void const * argument)
 		_stack[7]=uxTaskGetStackHighWaterMark(ACKTimeoutCheckTask_handle);
 		_stack[8]=uxTaskGetStackHighWaterMark(defaultTaskHandle);
 		_stack[9]=uxTaskGetStackHighWaterMark(g_comm_handle->tx_task_handle);
-    _stack[10]=uxTaskGetStackHighWaterMark(AutoAPP_handle);
-		_stack[11]=uxTaskGetStackHighWaterMark(ActionDealTask_handle);
+		_stack[10]=uxTaskGetStackHighWaterMark(Remote_Analysis_Handle);
     osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */
