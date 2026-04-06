@@ -15,18 +15,23 @@ SteeringWheel steeringWheelArray[3];
 Wheel_t wheelArray[3];
 Chassis_t chassis;
 
+//句柄
 TaskHandle_t Wheel_Handles[3];
 TaskHandle_t Can_Send_Handle;
 TaskHandle_t Remote_Analysis_Handle;
 
+//遥控器数据
 uint8_t usart4_dma_buff[30];
 uint8_t usart5_dma_buff[60];
-Remote_Handle_t Remote_Control; //取出遥控器数据
+Remote_Handle_t Remote_Control;
 extern SemaphoreHandle_t Remote_semaphore;
 
+//任务
 void Can_Send(void *pvParameters);
 void Wheel_Task(void *pvParameters);
 void Remote_Analysis_Task(void *pvParameters);
+
+ChassisMode chassis_mode = REMOTE;
 
 void Task_Init(void)
 {
@@ -39,11 +44,11 @@ void Task_Init(void)
 		__HAL_DMA_DISABLE_IT(huart5.hdmarx, DMA_IT_HT);
     
     steeringWheelArray[0].Key_GPIO_Port = GPIOE;
-    steeringWheelArray[0].Key_GPIO_Pin = GPIO_PIN_9;
-    steeringWheelArray[1].Key_GPIO_Port = GPIOA;
-    steeringWheelArray[1].Key_GPIO_Pin = GPIO_PIN_7;
-    steeringWheelArray[2].Key_GPIO_Port = GPIOE;
-    steeringWheelArray[2].Key_GPIO_Pin = GPIO_PIN_11;
+    steeringWheelArray[0].Key_GPIO_Pin = GPIO_PIN_11;
+    steeringWheelArray[1].Key_GPIO_Port = GPIOE;
+    steeringWheelArray[1].Key_GPIO_Pin = GPIO_PIN_9;
+    steeringWheelArray[2].Key_GPIO_Port = GPIOA;
+    steeringWheelArray[2].Key_GPIO_Pin = GPIO_PIN_5;
 
     wheelArray[0].pos.x =  0.3725f;
     wheelArray[0].pos.y =  0.3925f; 
@@ -77,7 +82,7 @@ void Task_Init(void)
 		
 		xTaskCreate(Remote_Analysis_Task, "Remote_Analysis_Task", 128, NULL, 4, &Remote_Analysis_Handle);
 }
-uint32_t data_flag = 0;
+
 void Wheel_Task(void *pvParameters)
 {
     TickType_t last_wake_time = xTaskGetTickCount();
@@ -99,9 +104,9 @@ void Wheel_Task(void *pvParameters)
 
     swheel->Driver_Vel_PID.Kp = 1.2f;
     swheel->Driver_Vel_PID.Ki = 0.0007f;
-    swheel->Driver_Vel_PID.Kd = 4.0f;
+    swheel->Driver_Vel_PID.Kd = 5.0f;
     swheel->Driver_Vel_PID.limit = 10000.0f;
-    swheel->Driver_Vel_PID.output_limit = 50.0f;
+    swheel->Driver_Vel_PID.output_limit = 45.0f;
 
     swheel->offset = 0.0f;
     swheel->maxRotateAngle = 350.0f;
@@ -120,11 +125,6 @@ void Wheel_Task(void *pvParameters)
 			vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(2));
     }
 }
-
-//can发送和遥控器任务
-int16_t motorCurrentBuf[3] = {0};
-float driveCurrentBuf[3] = {0};
-ChassisMode chassis_mode = REMOTE;
 
 PackControl_t recv_pack;
 uint8_t recv_buff[20] = {0};
@@ -161,9 +161,9 @@ void Remote_Analysis()
       /* 2. 解析当前按键 */
       Key_Parse(recv_pack.Key, &Remote_Control.First);
 
-      Remote_Control.Ex = recv_pack.rocker[0] / 1847.0f *MAX_ROBOT_VEL;
-      Remote_Control.Ey = recv_pack.rocker[1] / 1847.0f *MAX_ROBOT_VEL;
-      Remote_Control.Eomega = recv_pack.rocker[2] / 1847.0f * MAX_ROBOT_OMEGA;
+      Remote_Control.Ex = - recv_pack.rocker[1] / 1647.0f *MAX_ROBOT_VEL;
+      Remote_Control.Ey = recv_pack.rocker[0] / 1647.0f *MAX_ROBOT_VEL;
+      Remote_Control.Eomega = recv_pack.rocker[2] / 1647.0f * MAX_ROBOT_OMEGA;
     }else {
       Remote_Control.Ex = 0;
       Remote_Control.Ey = 0;
@@ -181,6 +181,9 @@ void MyRecvCallback(uint8_t *src, uint16_t size, void *user_data)
 }
 CommPackRecv_Cb  recv_cb = MyRecvCallback;
 
+//can发送
+int16_t motorCurrentBuf[3] = {0};
+float driveCurrentBuf[3] = {0};
 void Can_Send(void *pvParameters)
 {
 		TickType_t last_wake_time = xTaskGetTickCount();
@@ -191,7 +194,7 @@ void Can_Send(void *pvParameters)
 		steeringWheelArray[1].DriveMotor.motor_id = 0x02;
     steeringWheelArray[2].DriveMotor.hcan = &hcan1;
 		steeringWheelArray[2].DriveMotor.motor_id = 0x03;
-	
+		
 		g_comm_handle = Comm_Init(&huart5);
     RemoteCommInit(NULL);
     register_comm_recv_cb(recv_cb, 0x01, &recv_pack);
@@ -222,10 +225,10 @@ void Can_Send(void *pvParameters)
 
 void Remote_Analysis_Task(void *pvParameters)
 {
-		while(1)
-		{
-			Remote_Analysis();
-		}
+	while(1)
+	{
+		Remote_Analysis();
+	}
 }
 
 //中断
@@ -273,32 +276,31 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
-    if (huart->Instance == UART5)
-    {
-        HAL_UART_DMAStop(huart);
-        // 重置HAL状态
-        huart->ErrorCode = HAL_UART_ERROR_NONE;
-        huart->RxState = HAL_UART_STATE_READY;
-        huart->gState = HAL_UART_STATE_READY;
-        
-        // 然后清除错误标志 - 按照STM32F4参考手册要求的顺序
-        uint32_t isrflags = READ_REG(huart->Instance->SR);
-        
-        // 按顺序处理各种错误标志，必须先读SR再读DR来清除错误
-        if (isrflags & (USART_SR_ORE | USART_SR_NE | USART_SR_FE)) 
-        {
-            // 对于ORE、NE、FE错误，需要先读SR再读DR
-            volatile uint32_t temp_sr = READ_REG(huart->Instance->SR);
-            volatile uint32_t temp_dr = READ_REG(huart->Instance->DR); // 这个读取会清除ORE、NE、FE        
+	if (huart->Instance == UART5)
+	{
+		HAL_UART_DMAStop(huart);
+		// 重置HAL状态
+		huart->ErrorCode = HAL_UART_ERROR_NONE;
+		huart->RxState = HAL_UART_STATE_READY;
+		huart->gState = HAL_UART_STATE_READY;
+		
+		// 然后清除错误标志 - 按照STM32F4参考手册要求的顺序
+		uint32_t isrflags = READ_REG(huart->Instance->SR);
+		
+		// 按顺序处理各种错误标志，必须先读SR再读DR来清除错误
+		if (isrflags & (USART_SR_ORE | USART_SR_NE | USART_SR_FE)) 
+		{
+				// 对于ORE、NE、FE错误，需要先读SR再读DR
+				volatile uint32_t temp_sr = READ_REG(huart->Instance->SR);
+				volatile uint32_t temp_dr = READ_REG(huart->Instance->DR); // 这个读取会清除ORE、NE、FE        
 
-        if (isrflags & USART_SR_PE)
-        {
-            volatile uint32_t temp_sr = READ_REG(huart->Instance->SR);
-        }
-        
-    }
-      Comm_UART_IRQ_Handle(g_comm_handle, &huart5, usart5_dma_buff, 0);
-      HAL_UARTEx_ReceiveToIdle_DMA(&huart5, usart5_dma_buff,sizeof(usart5_dma_buff));
-      __HAL_DMA_DISABLE_IT(huart5.hdmarx, DMA_IT_HT);
-    }
+		if (isrflags & USART_SR_PE)
+		{
+				volatile uint32_t temp_sr = READ_REG(huart->Instance->SR);
+		}
+	}
+		Comm_UART_IRQ_Handle(g_comm_handle, &huart5, usart5_dma_buff, 0);
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart5, usart5_dma_buff,sizeof(usart5_dma_buff));
+		__HAL_DMA_DISABLE_IT(huart5.hdmarx, DMA_IT_HT);
+	}
 }

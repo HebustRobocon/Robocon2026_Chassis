@@ -104,8 +104,8 @@ void RemoteCommInit(BadDataPackCb_t callback)
     send_ack_blocks_mutex = xSemaphoreCreateMutex();
 
     xTaskCreate(SendDataPackTask, "uartSendTask", 300, NULL, 5, &SendDataPackTask_handle);
-    xTaskCreate(ReceiveDataPackTask, "uartRecvTask", 300, callback, 5, &ReceiveDataPackTask_handle);
-    xTaskCreate(ACKTimeoutCheckTask, "uartackTask", 300, NULL, 3, &ACKTimeoutCheckTask_handle);
+    xTaskCreate(ReceiveDataPackTask, "uartRecvTask", 400, callback, 5, &ReceiveDataPackTask_handle);
+    xTaskCreate(ACKTimeoutCheckTask, "uartackTask", 400, NULL, 3, &ACKTimeoutCheckTask_handle);
 }
 
 /* -------------------- 求和校验 -------------------- */
