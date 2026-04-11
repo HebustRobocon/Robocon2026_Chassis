@@ -147,11 +147,11 @@ void Reset_Function(SteeringWheel *pSteWhe)
 	}
 	if (HAL_GPIO_ReadPin(pSteWhe->Key_GPIO_Port, pSteWhe->Key_GPIO_Pin))
 	{
-		pSteWhe->putoutDirection = pSteWhe->putoutDirection + 0.5f;
+		pSteWhe->putoutDirection = pSteWhe->putoutDirection + 0.1f;
 	}
 	else
 	{
-		pSteWhe->putoutDirection = pSteWhe->putoutDirection - 0.5f;
+		pSteWhe->putoutDirection = pSteWhe->putoutDirection - 0.1f;
 	}
 
 	if ((HAL_GPIO_ReadPin(pSteWhe->Key_GPIO_Port, pSteWhe->Key_GPIO_Pin) << 4) != (pSteWhe->ready_edge_flag & 0x10))//如果上一次的IO电平与此次不同，那么认为复位成功

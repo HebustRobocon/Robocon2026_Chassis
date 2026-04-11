@@ -48,6 +48,14 @@ typedef struct
 	uint32_t Key;
 }PackControl_t;
 
+
+typedef struct
+{
+	uint8_t head;
+	uint32_t Key_Data;
+	uint8_t tail;
+} __attribute__((packed))Pack_TransRemote_t;
+
 //遥控器上行数据包，字符串反馈信息
 #define PACK_STR_FEEDBACK_CMD    0x02
 typedef struct

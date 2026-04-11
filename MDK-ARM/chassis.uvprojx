@@ -866,6 +866,16 @@
               <FileType>5</FileType>
               <FilePath>..\BaseLib\My_list.h</FilePath>
             </File>
+            <File>
+              <FileName>motorEx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BaseLib\motorEx.c</FilePath>
+            </File>
+            <File>
+              <FileName>motorEx.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\BaseLib\motorEx.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -2247,9 +2257,6 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>::CMSIS</GroupName>
-        </Group>
-        <Group>
           <GroupName>Middlewares/Library/DSP Library/DSP Library</GroupName>
           <GroupOption>
             <CommonProperty>
@@ -2347,6 +2354,9 @@
             </File>
           </Files>
         </Group>
+        <Group>
+          <GroupName>::CMSIS</GroupName>
+        </Group>
       </Groups>
     </Target>
   </Targets>
@@ -2363,5 +2373,14 @@
     </components>
     <files/>
   </RTE>
+
+  <LayerInfo>
+    <Layers>
+      <Layer>
+        <LayName>chassis</LayName>
+        <LayPrjMark>1</LayPrjMark>
+      </Layer>
+    </Layers>
+  </LayerInfo>
 
 </Project>

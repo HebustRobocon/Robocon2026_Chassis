@@ -6,8 +6,10 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "usb_device.h"
+#include "motorEx.h"
 
-#define MAX_ROBOT_VEL 5.0f // m/s
+#define M_PI 3.1415926f
+#define MAX_ROBOT_VEL 5.0f //	 m/s
 #define MAX_ROBOT_OMEGA ANGLE2RAD(60.0f)
 
 void Task_Init(void);

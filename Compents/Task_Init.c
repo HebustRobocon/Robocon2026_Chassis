@@ -78,7 +78,7 @@ void Task_Init(void)
 		xTaskCreate(Wheel_Task, "wheel_task2", 300, &wheelArray[1], 4, &Wheel_Handles[1]);
 		xTaskCreate(Wheel_Task, "wheel_task3", 300, &wheelArray[2], 4, &Wheel_Handles[2]);
 		
-		xTaskCreate(Can_Send, "Can_Send", 300, NULL, 4, &Can_Send_Handle);
+		xTaskCreate(Can_Send, "Can_Send", 400, NULL, 4, &Can_Send_Handle);
 		
 		xTaskCreate(Remote_Analysis_Task, "Remote_Analysis_Task", 128, NULL, 4, &Remote_Analysis_Handle);
 }
@@ -102,10 +102,10 @@ void Wheel_Task(void *pvParameters)
     swheel->Steering_Dir_PID.limit = 10.0f;
     swheel->Steering_Dir_PID.output_limit = 10000.0f;
 
-    swheel->Driver_Vel_PID.Kp = 1.2f;
-    swheel->Driver_Vel_PID.Ki = 0.0007f;
-    swheel->Driver_Vel_PID.Kd = 5.0f;
-    swheel->Driver_Vel_PID.limit = 10000.0f;
+    swheel->Driver_Vel_PID.Kp = 1.1f;
+    swheel->Driver_Vel_PID.Ki = 0.005f;
+    swheel->Driver_Vel_PID.Kd = 3.0f;
+    swheel->Driver_Vel_PID.limit = 50000.0f;
     swheel->Driver_Vel_PID.output_limit = 45.0f;
 
     swheel->offset = 0.0f;
@@ -127,6 +127,7 @@ void Wheel_Task(void *pvParameters)
 }
 
 PackControl_t recv_pack;
+Pack_TransRemote_t trans_pack;
 uint8_t recv_buff[20] = {0};
 float rocker_filter[4] = {0};
 static void Key_Parse(uint32_t key, hw_key_t *out)
@@ -158,12 +159,13 @@ void Remote_Analysis()
     {
       /* 1. 保存上一帧 */
       Remote_Control.Second = Remote_Control.First;
+			
       /* 2. 解析当前按键 */
       Key_Parse(recv_pack.Key, &Remote_Control.First);
 
-      Remote_Control.Ex = - recv_pack.rocker[1] / 1647.0f *MAX_ROBOT_VEL;
-      Remote_Control.Ey = recv_pack.rocker[0] / 1647.0f *MAX_ROBOT_VEL;
-      Remote_Control.Eomega = recv_pack.rocker[2] / 1647.0f * MAX_ROBOT_OMEGA;
+      Remote_Control.Ex = - recv_pack.rocker[1] / 1597.0f *MAX_ROBOT_VEL;
+      Remote_Control.Ey = recv_pack.rocker[0] / 1597.0f *MAX_ROBOT_VEL;
+      Remote_Control.Eomega = recv_pack.rocker[2] / 1597.0f * MAX_ROBOT_OMEGA;
     }else {
       Remote_Control.Ex = 0;
       Remote_Control.Ey = 0;
@@ -182,12 +184,32 @@ void MyRecvCallback(uint8_t *src, uint16_t size, void *user_data)
 CommPackRecv_Cb  recv_cb = MyRecvCallback;
 
 //can发送
-int16_t motorCurrentBuf[3] = {0};
+int16_t motorCurrentBuf[4] = {0};
 float driveCurrentBuf[3] = {0};
+float expected = 0.0f;
+float Up_L = 0.0f;
+float final =0.0f;
+Motor3508Ex_t Lift_Motor;
+int32_t RAMP_self( int32_t final, int32_t now, int32_t ramp );
 void Can_Send(void *pvParameters)
 {
 		TickType_t last_wake_time = xTaskGetTickCount();
-		
+				
+		Lift_Motor.ID = 0x204;
+	  Lift_Motor.hcan = &hcan2;
+	
+		Lift_Motor.pos_pid.Kp = 0.1f;
+	  Lift_Motor.pos_pid.Ki = 0.0f;
+  	Lift_Motor.pos_pid.Kd = 0.0f;
+	  Lift_Motor.pos_pid.limit = 10000.0f;
+    Lift_Motor.pos_pid.output_limit = 9006.3f;
+
+	  Lift_Motor.vel_pid.Kp = 12.0f;
+    Lift_Motor.vel_pid.Ki = 0.01f;
+    Lift_Motor.vel_pid.Kd = 0.0f;
+    Lift_Motor.vel_pid.limit = 10000.0f;
+    Lift_Motor.vel_pid.output_limit = 16384.0f;
+
 		steeringWheelArray[0].DriveMotor.hcan = &hcan1;
 		steeringWheelArray[0].DriveMotor.motor_id = 0x01;
 		steeringWheelArray[1].DriveMotor.hcan = &hcan1;
@@ -201,14 +223,26 @@ void Can_Send(void *pvParameters)
 	
 		for(;;)
 		{
+			trans_pack.Key_Data = recv_pack.Key;
+			
+			if(Remote_Control.First.Left_Key_Left)
+				Up_L = 200.0f;
+			else if(Remote_Control.First.Left_Key_Down)
+				Up_L = 0.0f;
+			
 			chassis.exp_vel.x = Remote_Control.Ex;
 			chassis.exp_vel.y = Remote_Control.Ey;
 			chassis.exp_vel.z = Remote_Control.Eomega;
 			
+			expected = -1*Up_L / (2 * M_PI * 20.63) * 19.0f * 8192.0f;
+			final= RAMP_self(expected, final, 520);
+			PID_Control2(Lift_Motor.actual_pos,final,&Lift_Motor.pos_pid);
+			PID_Control2(Lift_Motor.motor.Speed,Lift_Motor.pos_pid.pid_out,&Lift_Motor.vel_pid); 
+
 			motorCurrentBuf[0] = steeringWheelArray[0].Steering_Vel_PID.pid_out;
 			motorCurrentBuf[1] = steeringWheelArray[1].Steering_Vel_PID.pid_out;
 			motorCurrentBuf[2] = steeringWheelArray[2].Steering_Vel_PID.pid_out;
-
+			motorCurrentBuf[3] = Lift_Motor.vel_pid.pid_out;
 			MotorSend(&hcan2, 0x200, motorCurrentBuf);
 			
 			driveCurrentBuf[0] = steeringWheelArray[0].Driver_Vel_PID.pid_out;
@@ -218,13 +252,15 @@ void Can_Send(void *pvParameters)
 			VESC_SetCurrent(&steeringWheelArray[0].DriveMotor, driveCurrentBuf[0]);
 			VESC_SetCurrent(&steeringWheelArray[1].DriveMotor, driveCurrentBuf[1]);
 			VESC_SetCurrent(&steeringWheelArray[2].DriveMotor, driveCurrentBuf[2]);
-
+			
 			vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(2));
 		}
 }
 
 void Remote_Analysis_Task(void *pvParameters)
 {
+	trans_pack.head = 0xAB;
+	trans_pack.tail = 0xBA;
 	while(1)
 	{
 		Remote_Analysis();
@@ -259,7 +295,10 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan) // 接收2006的
     else if (ID == 0x203) // 左下(象限3)
     {
       M2006_Receive(&steeringWheelArray[2].SteeringMotor, Recv);
-    }
+    }else if(ID == 0x204)
+		{
+			Motor3508Recv(&Lift_Motor,hcan, ID, Recv);
+		}
   }
 }
 
@@ -271,6 +310,18 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
 		Comm_UART_IRQ_Handle(g_comm_handle, &huart5, usart5_dma_buff,size);
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart5, usart5_dma_buff,sizeof(usart5_dma_buff));
    	__HAL_DMA_DISABLE_IT(huart5.hdmarx, DMA_IT_HT);
+	}
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if (huart == &huart2)
+	{
+			HAL_UART_Transmit_DMA(&huart2,(uint8_t *)&trans_pack,sizeof(Pack_TransRemote_t));
+	}
+	if(huart == &huart6)
+	{
+			HAL_UART_Transmit_DMA(&huart6,(uint8_t *)&trans_pack,sizeof(Pack_TransRemote_t));
 	}
 }
 
@@ -303,4 +354,24 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart5, usart5_dma_buff,sizeof(usart5_dma_buff));
 		__HAL_DMA_DISABLE_IT(huart5.hdmarx, DMA_IT_HT);
 	}
+}
+int32_t RAMP_self( int32_t final, int32_t now, int32_t ramp )
+{
+    float buffer = final - now;
+
+    if (buffer > 0)
+    {
+        if (buffer > ramp)  
+                now += ramp;  
+        else
+                now += buffer;
+    }		
+    else
+    {
+        if (buffer < -ramp)
+                now += -ramp;
+        else
+                now += buffer;
+    }
+    return now;
 }
